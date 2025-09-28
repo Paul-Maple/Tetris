@@ -23,9 +23,14 @@ void spi_disable(void)
     RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
 }
 
-void spi_transmit(uint8_t *data)
+void spi_transmit(const uint8_t *data)
 {
     ASSERT_NULL_PTR(data);
+    
+    //Ждем, пока не освободится буфер передатчика
+    //while(!(SPI1->SR & SPI_SR_TXE))
+        //{ }
+    // TODO: Переделать эту хуйню с ожиданием
     // Запись в регистр данных
     SPI1->DR = (*data);
 }

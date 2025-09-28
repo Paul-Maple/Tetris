@@ -15,7 +15,7 @@ uint8_t lcd_mac_reg = LCD_MAC_D1 | LCD_MAC_D2;
 }
 
 //  Инициализация элемента цепочки команд
-#define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT(data, cmd, sizeof(data))
+#define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT((const void*)(data), cmd, sizeof(data))
 
 // Команда завершения передачи
 #define LCD_CMD_CHAIN_END       LCD_CMD_STATIC_INIT(NULL, LCD_CMD_NOP, 0)
@@ -23,33 +23,35 @@ uint8_t lcd_mac_reg = LCD_MAC_D1 | LCD_MAC_D2;
 // Отправка цепочки команд по SPI
 static void lcd_chain_cmd_tx(const lcd_chain_cmd_t *chain)
 {
+    ASSERT_NULL_PTR(chain);
+    
     // Включить SPI
     spi_enable();
     
+    // Буфер для команд
+    uint8_t buffer_cmd;
     // Цикл, пока не дойдёт до команды завершения передачи цепочки
     for ( ; chain->cmd != LCD_CMD_NOP; chain++)
     {
         // Установить вывод DCRS для отправки команды
         io_dcrs_set(LCD_CMD);
+        
         // Отправка команды
-        spi_transmit((uint8_t *)chain->cmd);
+        buffer_cmd = (uint8_t)chain->cmd;
+        spi_transmit(&buffer_cmd);
         
         // Если команда имеет параметры
         if (chain->data != NULL)
         {
             // Установить вывод DCRS для отправки данных
             io_dcrs_set(LCD_DATA);
-
+            
+            // Буфер для данных
+            const uint8_t *buffer_data = (const uint8_t *)chain->data;
             // Запись данных в буфер для отправки
             for (uint8_t i = 0; i < chain->size; i++)
-            {
-                uint8_t *buffer = (uint8_t *) chain->data + i;
-                
-                //Ждем, пока не освободится буфер передатчика
-                while(!(SPI1->SR & SPI_SR_TXE))
-                    { }
-                spi_transmit(buffer);
-            }
+                // Передача
+                spi_transmit(&buffer_data[i]);
         }
     }
     

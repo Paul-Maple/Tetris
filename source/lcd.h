@@ -46,12 +46,12 @@ typedef struct
 typedef struct
 {
     // Указатели начала записи
-    uint16_t *collum_start;
-    uint16_t *line_start;
+    uint16_t collum_start;
+    uint16_t line_start;
     
     // Указатели конца записи
-    uint16_t *collum_end;
-    uint16_t *line_end;
+    uint16_t collum_end;
+    uint16_t line_end;
     
     // Данные для записи
     void *rgb_data;
