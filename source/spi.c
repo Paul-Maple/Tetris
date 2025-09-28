@@ -31,6 +31,7 @@ void spi_transmit(const uint8_t *data)
     //while(!(SPI1->SR & SPI_SR_TXE))
         //{ }
     // TODO: Переделать эту хуйню с ожиданием
+    
     // Запись в регистр данных
     SPI1->DR = (*data);
 }

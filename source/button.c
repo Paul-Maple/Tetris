@@ -91,15 +91,15 @@ void button_0_iqr(void)
 
 void button_1_iqr(void)
 {
-    BUTTON_ISR_FLAG_CLEAR(2);
+    BUTTON_ISR_FLAG_CLEAR(1);
 }
 
 void button_2_iqr(void)
 {
-    BUTTON_ISR_FLAG_CLEAR(3);
+    BUTTON_ISR_FLAG_CLEAR(2);
 }
 
 void button_3_iqr(void)
 {
-    BUTTON_ISR_FLAG_CLEAR(4);
+    BUTTON_ISR_FLAG_CLEAR(3);
 }
