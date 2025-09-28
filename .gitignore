@@ -4,7 +4,7 @@ Release/
 DebugEx/
 ReleaseEx/
 
-# Папка settings (если она существует в вашем проекте)
+# Папка settings 
 settings/
 .settings/
 
@@ -22,7 +22,6 @@ settings/
 *.lst
 *.map
 *.rpt
-*.txt
 *.xcl
 
 # Объектные файлы и исполняемые файлы
