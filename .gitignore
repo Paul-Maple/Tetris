@@ -1,0 +1,38 @@
+# Папки сборки IAR Embedded Workbench
+Debug/
+Release/
+DebugEx/
+ReleaseEx/
+
+# Папка settings (если она существует в вашем проекте)
+settings/
+.settings/
+
+# Временные файлы IAR
+*.dep
+*.ewd
+*.ewt
+*.bat
+*.wpw
+*.wsp
+
+# Файлы отчетов и листингов
+*.lst
+*.map
+*.rpt
+*.txt
+*.xcl
+
+# Объектные файлы и исполняемые файлы
+*.o
+*.obj
+*.exe
+*.out
+*.hex
+*.bin
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
