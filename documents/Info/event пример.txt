@@ -1,0 +1,70 @@
+#include "event.h"
+#include "mcu.h"
+
+// Обявление пустого списока событий
+static list_t event_list = 
+{
+    .head = NULL,
+    .last = NULL,
+};
+
+// Инициализация события
+void event_init(event_t *event, handler_cb_ptr handler)
+{    
+    // Инициализация  флага события и присвоение callback функции
+    event->event_hendler = handler;
+    event->event_pending = EVENT_PENDING_FLAG_OFF;
+    // Инициализация элемента списка событий
+    item_init(event->event_list_item);
+}
+
+// Генерация события
+void event_raise(event_t *event_item)
+{
+    // Если флаг события уже установлен - сразу выход
+    if (event_item->event_pending)
+        return;
+    
+    // Установить флаг события
+    event_item->event_pending = EVENT_PENDING_FLAG_ON;
+    // Добавить событие список
+    list_insert(&event_list, event_item->event_list_item);
+}
+
+// Обработчик событий
+static void event_process(void)
+{
+    
+    // OFF
+    // Обработка очереди
+    while (!list_empty(&event_list))
+    {
+        // Получаем первый элемент списка
+        event_t *temp_event;// = (event_t*)event_list.list_item_head;
+        
+        // Проверка состояния
+        assert(temp_event->event_pending);
+        
+        // ON
+        // Вызов обработчика события
+        temp_event->event_hendler();
+        // OFF
+        // Удаляем из списка
+        list_remove(&event_list, temp_event->event_list_item);
+        // Cбрасываем флаг события
+        temp_event->event_pending = EVENT_PENDING_FLAG_OFF ;
+    }
+    
+    // ON
+}
+
+// Цикл обработки событий
+void event_loop(void)
+{
+    for (;;)
+    {
+        event_process();
+        
+        __WFI();
+    }
+}

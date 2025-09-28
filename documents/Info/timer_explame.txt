@@ -1,0 +1,248 @@
+#include <modules/arch/timer/v1/arch_timer.h>
+
+/* Минимальное значение разницы тиков между текущим счетчиком и новым
+ * значение регистра сравнения. Определяется с учетом системной частоты и
+ * частоты тактирования аппаратного таймера. Процессор должен успеть получить
+ * текущее значение счетчика аппаратного таймера и записать его в регистр
+ * сравнения до того как таймер досчитает до этого значения. Минимально 1 */
+#ifndef ARCH_TIMER_CFG_HARD_COMPARE_MIN
+    #define ARCH_TIMER_CFG_HARD_COMPARE_MIN         15
+#endif
+
+#if ARCH_TIMER_CFG_HARD_COMPARE_MIN < 1
+    #error invalid hard comapre minimum value
+#endif
+
+/* Значаение отставания счетчика аппаратного таймера при обработки прерывания 
+ * аппаратного таймера. Обработчик прерывания должен быть запущен в течении 
+ * указанного количества тиков. Минимально 0 */
+#ifndef ARCH_TIMER_CFG_HARD_COUNTER_LAG
+    #define ARCH_TIMER_CFG_HARD_COUNTER_LAG         ARCH_TIMER_CFG_HARD_COMPARE_MIN
+#endif
+
+#if ARCH_TIMER_CFG_HARD_COUNTER_LAG < 0
+    #error invalid hard counter latency value
+#endif
+
+#include <modules/arch/timer/v1/internal/arch_timer_internal.h>
+
+/* Максимальное значение разницы тиков между текущим счетчиком и новым значение регистра сравнения */
+#define ARCH_TIMER_HARD_COMPARE_MAX     \
+    (ARCH_TIMER_REGISTER_TOP - ARCH_TIMER_CFG_HARD_COUNTER_LAG)
+
+/* Обработчик реализуемый прошивокй для вызова обработчик таймера
+ * Должен быть вызван обработчик "handler" в структуре "sender::data" */
+static void arch_timer_hal_handler_call(void *context, const arch_timer_t *sender);
+
+/* Функция реализуемая прошивкой для получения регистра счетчика аппаратного таймера */
+static arch_timer_register_t arch_timer_hal_hard_counter_get(void);
+
+/* Функция реализуемая прошивкой для задаения регистра сравнения аппаратного таймера */
+static void arch_timer_hal_hard_compare_set(arch_timer_register_t value);
+
+/* Инициализация таймера */
+static void arch_timer_init(arch_timer_t *ref, arch_timer_handler_ptr handler, arch_timer_mode_t mode)
+{
+    CORE_ASSERT(ref != NULL);
+    CORE_ASSERT(handler != NULL);
+    
+    /* Сброс списка */
+    core_bi_item_init(&ref->item);
+    
+    /* Поля инициализации */
+    ref->init.mode = mode;
+    ref->init.handler = handler;
+    
+    /* Перевод в остановленное состояние */
+    ref->data.remain = 0;
+    arch_timer_raised_reset(ref);
+    
+    /* Соблюден ли критерий останова */
+    CORE_ASSERT(arch_timer_inactive(ref));
+}
+
+/* Запуск таймера */
+static void arch_timer_start(arch_timer_t *ref, arch_timer_interval_t interval)
+{
+    CORE_ASSERT(ref != NULL);
+    CORE_ASSERT(interval <= ARCH_TIMER_INTERVAL_MAX);
+
+    /* Нормализация минимального интервала */
+    interval = arch_timer_interval_normalize(interval);
+    
+    /* Добавление в список */
+    if (!arch_timer_list_contains(ref))
+        arch_timer_list_add(ref);
+
+    /* Сброс */
+    ref->data.reload = interval;
+    arch_timer_raised_reset(ref);
+
+    /* Установка задержки */
+    {
+        const arch_timer_register_t time = arch_timer_hal_hard_counter_get();
+        const arch_timer_register_t delta = time - arch_timer_register_last;
+        
+        /* Немедленная генерация обработки */
+        arch_timer_hal_hard_compare_set(time + ARCH_TIMER_CFG_HARD_COMPARE_MIN);
+
+        /* Установка времени до срабатывания */
+        ref->data.remain = interval + delta;
+    }
+}
+
+/* Остановка таймера */
+static void arch_timer_stop(arch_timer_t *ref)
+{
+    CORE_ASSERT(ref != NULL);
+    
+    if (!arch_timer_list_contains(ref))
+        return;
+    
+    /* Признак удаления не последнего таймера */
+    arch_timer_was_stopped |= ref->item.next != NULL;
+    /* Удаление из списка */
+    arch_timer_list_remove(ref);
+    /* Сброс признака срабатывания */
+    arch_timer_raised_reset(ref);
+}
+
+/* Получает, признак ожидания обработки таймера (синхронизация не требуется) */
+static bool_t arch_timer_raised(const arch_timer_t *ref)
+{
+    return ref->data.raised;
+}
+
+/* Получает, признак активности таймера */
+static bool_t arch_timer_started(const arch_timer_t *ref)
+{
+    return arch_timer_list_contains(ref);
+}
+
+/* Проверка сигнального таймера на срабатывание (признак сбрасывается автоматически) */
+static bool_t arch_timer_signal_check(arch_timer_t *ref)
+{
+    const bool_t result = arch_timer_raised(ref);
+    arch_timer_raised_reset(ref);
+    return result;
+}
+
+/* Получает значение счетчика прошедшего времени */
+static arch_timer_interval_t arch_timer_interval_total_get(void)
+{
+    const arch_timer_register_t delta = arch_timer_hal_hard_counter_get() - arch_timer_register_last;
+    return arch_timer_interval_total + delta;
+}
+
+/* Обработка таймеров.
+ * Типично вызываемая в прерывании аппаратного таймера
+ * Возвращает, нужна ли обработка сработавших таймеров */
+static bool_t arch_timer_processing(void)
+{
+    bool_t raise_event = FALSE;
+    arch_timer_interval_t time_min = ARCH_TIMER_HARD_COMPARE_MAX;
+    arch_timer_register_t time_min_reg;
+
+    /* Определение прошедшего времени */
+    arch_timer_register_t time_delta = arch_timer_hal_hard_counter_get();
+    time_delta -= arch_timer_register_last;
+    arch_timer_register_last += time_delta;
+    
+    /* Инкремент прошедшего времени */
+    arch_timer_interval_total += time_delta;
+    
+    /* Обход списка таймеров */
+    for (core_bi_item_t *i = arch_timer_list.first; i != NULL; i = i->next)
+    {
+        /* Текущий таймер */
+        arch_timer_t * const timer = (arch_timer_t *)i;
+        
+        /* Если таймер не активен */
+        if (arch_timer_inactive(timer))
+            continue;
+        
+        timer->data.remain -= time_delta;
+
+        /* Если срабатывает таймер */
+        if (arch_timer_inactive(timer))
+        {
+            /* Взведение события */
+            raise_event = TRUE;
+            timer->data.raised = TRUE;
+            
+            /* Если таймер сигнальный */
+            if (timer->init.handler == NULL)
+            {
+                /* Переход к предыдущему */
+                i = i->prev;
+                
+                /* Удаление из списка */
+                arch_timer_list_remove(timer);
+                /* Переобход цеопчки при обработке */
+                arch_timer_was_stopped = TRUE;
+                /* Признак ожидания обработки не сбрасывается */
+                continue;
+            }
+           
+            /* Обработка периода */
+            if (timer->init.mode != ARCH_TIMER_MODE_PERIOD)
+                continue;
+
+            /* Обновление интервала */
+            do
+            {
+                timer->data.remain += timer->data.reload;
+            } while (arch_timer_inactive(timer));
+        }
+
+        if (time_min > timer->data.remain)
+            time_min = timer->data.remain;
+    }
+    
+    /* Ограничение на минимальное время следующего срабатывания */
+    time_min_reg = (arch_timer_register_t)arch_timer_interval_normalize(time_min);
+    
+    /* Заводим срабатывание на новый интерфвал */
+    arch_timer_hal_hard_compare_set(arch_timer_hal_hard_counter_get() + time_min_reg);
+
+    return raise_event;
+}
+
+/* Обработка сработавших таймеров.
+ * Типично вызываемая в отложенно в главном цикле 
+ * если "arch_timer_processing" вернула "TRUE" */
+static void arch_timer_processing_raised(void *context)
+{
+    /* Цикл пока не будет изменений списка связанных с удалением */
+    do
+    {
+        arch_timer_was_stopped = FALSE;
+        
+        /* Обход списка таймеров */
+        core_bi_item_t *next;
+        for (core_bi_item_t *i = arch_timer_list.first; i != NULL; i = next)
+        {
+            next = i->next;
+            /* Текущий таймер */
+            arch_timer_t * const timer = (arch_timer_t *)i;
+            
+            /* Фильтр по сработавшим таймерам */
+            if (!timer->data.raised)
+                continue;
+            
+            arch_timer_raised_reset(timer);
+
+            /* Если таймер не активен - удаление из списка */
+            if (arch_timer_inactive(timer))
+                arch_timer_list_remove(timer);
+            
+            /* Вызов обработчика */
+            CORE_ASSERT(timer->init.handler != NULL);
+            arch_timer_hal_handler_call(context, timer);
+            
+            /* Какой то таймер удален...Обход заново */
+            if (arch_timer_was_stopped)
+                break;
+        }
+    } while (arch_timer_was_stopped);
+}

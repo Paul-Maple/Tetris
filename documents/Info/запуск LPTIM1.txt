@@ -1,0 +1,21 @@
+    /* 
+    // Устновка делителя (= 128)
+    // LPTIM1_CFGR может быть установлен ТОЛЬКО когда установлен LPTIM1_CR_ENABLE = 0
+    LPTIM1->CFGR = LPTIM1_PRESC_128;
+    
+    // Разрешить прерывание по совпадению с ARR
+    // LPTIM1_IER может быть установлен ТОЛЬКО когда установлен LPTIM1_CR_ENABLE = 0
+    LPTIM1->IER = LPTIM_IER_ARRMIE;
+    
+    // Запустить таймер
+    LPTIM1->CR = LPTIM_CR_ENABLE;
+    
+    // Ограничение счёта до 100
+    // LPTIM1_ARR  может быть установлен только когда установлен LPTIM1_CR_ENABLE = 1
+    LPTIM1->ARR = LPTIM1_ARR - 1;
+    
+    // Режим непрерывного счёта до значения в регистре ARR
+    // SNGSTRT может быть установлен только когда установлен LPTIM1_CR_ENABLE = 1
+    LPTIM1->CR |= LPTIM_CR_CNTSTRT;
+    
+    nvic_irq_enable(LPTIM1_IRQn);   */
