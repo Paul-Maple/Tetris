@@ -1,4 +1,3 @@
-// TODO: Сделать подсветку кастомных типов (с суффиксом _t)
 // Для включения прерываний глобально
 #include "mcu.h"
 // Для инициализации модулей
@@ -17,7 +16,7 @@ __noreturn void main(void)
     // Порядок инициализации модулей не менять !!!!!!!
     mcu_init();
     io_init();
-    clk_init();  
+    clk_init();
     timer_module_init();
     button_init();
     lcd_init();
