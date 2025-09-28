@@ -80,11 +80,11 @@ void lcd_init(void)
     // Массив элементов цепочки команд
     static const lcd_chain_cmd_t lcd_chain_display_on[] = 
     {
-        LCD_CMD_STATIC_INIT(NULL, LCD_CMD_SOFT_RESET, 0),
-        LCD_CMD_STATIC_INIT(NULL, LCD_CMD_SLEEP_OUT, 0),
-        LCD_CMD_INIT(&lcd_mac_reg, LCD_CMD_MAC_SET),
-        LCD_CMD_STATIC_INIT(NULL, LCD_CMD_DISPLAY_ON, 0),
-        LCD_CMD_CHAIN_END
+        LCD_CMD_STATIC_INIT(NULL, LCD_CMD_SOFT_RESET, 0),                       // 
+        LCD_CMD_STATIC_INIT(NULL, LCD_CMD_SLEEP_OUT, 0),                        // 
+        LCD_CMD_INIT(&lcd_mac_reg, LCD_CMD_MAC_SET),                            // 
+        LCD_CMD_STATIC_INIT(NULL, LCD_CMD_DISPLAY_ON, 0),                       // 
+        LCD_CMD_CHAIN_END                                                       // 
     };
     
     // Передача

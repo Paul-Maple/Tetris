@@ -42,7 +42,7 @@ typedef struct
     
 } lcd_chain_cmd_t;
 
-// Структура адресов пикселей для записи
+// Структура адресов строки и столбца для записи
 typedef struct
 {
     // Указатели начала записи
@@ -56,7 +56,7 @@ typedef struct
     // Данные для записи
     void *rgb_data;
     
-} lcd_pixels_prt;
+} lcd_pixels_prt_t;
 
 // Инициализация дисплея
 void lcd_init(void);
