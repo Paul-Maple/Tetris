@@ -2,6 +2,7 @@
 #define __LCD_H
 
 #include <typedefs.h>
+#include "timer.h"
 
 // Перечисление команд управления дисплеем
 typedef enum
@@ -26,19 +27,30 @@ typedef enum
 // Перечисление состояний пина DCRS 
 enum
 {
-    LCD_CMD,    // Команда - 0
-    LCD_DATA    // Данные  - 1
+    LCD_CMD  = 0,    // Команда
+    LCD_DATA = 1     // Данные
+};
+
+// Перечисление тиков таймера для задержки отправки команд
+enum
+{
+    LCD_TIC_RESET     = TIMER_TICKS_MS(5),
+    LCD_TIC_SLEEP_OUT = TIMER_TICKS_MS(5)
 };
 
 // Структура элемента цепочки команд
 typedef struct
 {
+    // Таймер для задержки отправки команды (ПЕРВЫМ В СТРУКТУРЕ !!!!!)
+    timer_t timer;
+    // Интервал срабатывания таймера
+    timer_interval_t time;
     // Указатель на данные
     const void *data;
-    // Команда
-    lcd_cmd_t cmd;
     // Размер данных (в байтах)
     uint8_t size;
+    // Команда
+    lcd_cmd_t cmd;
     
 } lcd_chain_cmd_t;
 
