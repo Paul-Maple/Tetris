@@ -27,7 +27,7 @@ void list_item_init(list_item_t *item);
     /*** Список ***/
 // Стуктура списка
 typedef struct
-{   
+{
     list_item_t *head;
     list_item_t *last;
 } list_t;

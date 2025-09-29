@@ -125,7 +125,7 @@ static uint32_t timer_interval_normalize(uint32_t interval)
     TIMER_INTERVAL_MIN : interval;
 }
 
-void timer_start(timer_t *timer, uint32_t ticks)
+void timer_start(timer_t *timer, timer_interval_t ticks)
 {
     ASSERT_NULL_PTR(timer);
     assert(ticks < TIMER_INTERVAL_OVF);

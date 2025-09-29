@@ -13,7 +13,7 @@ void spi_enable(void)
                 SPI_CR1_SPE;            // Включить SPI
     
     SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |     // Передача по 8 бит
-                SPI_CR2_SSOE;                                   // Без режима мультимастер
+                SPI_CR2_SSOE;                                    // Без режима мультимастер
 }
 
 void spi_disable(void)
@@ -28,9 +28,9 @@ void spi_transmit(const uint8_t *data)
     ASSERT_NULL_PTR(data);
     
     //Ждем, пока не освободится буфер передатчика
-    //while(!(SPI1->SR & SPI_SR_TXE))
-        //{ }
-    // TODO: Переделать эту хуйню с ожиданием
+    while(!(SPI1->SR & SPI_SR_TXE))
+        { }
+    // TODO: Переделать эту хуйню с пустым ожиданием (Она временная)
     
     // Запись в регистр данных
     SPI1->DR = (*data);
