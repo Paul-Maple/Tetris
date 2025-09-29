@@ -4,7 +4,8 @@
 #include "io.h"
 
 // Регистр MAC (Memory access control 8-ми битный)
-uint8_t lcd_mac_reg = LCD_MAC_D1 | LCD_MAC_D2;
+// TODO: Записать в регистр необходимые значения бит
+uint8_t lcd_mac_reg = 0b00000000;
 
 // Статическая инициализация элемента цепочки команд
 #define LCD_CMD_STATIC_INIT(mode, _time, cb, _data, _size, _cmd)                \
@@ -67,11 +68,11 @@ static void lcd_chain_cmd_tx(lcd_chain_cmd_t *chain)
     spi_disable();
 }
 
-// Отправка цепочки команд после задержки
+// Отправка оставшейся цепочки команд после задержки
 static void lcd_cmd_tx(timer_t *timer)
 {
     lcd_chain_cmd_t *chain = (lcd_chain_cmd_t *) timer;
-    // Передаём следующий элемент цепочки
+    // Передача следующего элемента цепочки команд
     lcd_chain_cmd_tx(chain + 1);
 }
 
@@ -86,8 +87,8 @@ void lcd_init(void)
         LCD_CMD_INIT(TIMER_MODE_ONE_SHOT, 0, lcd_cmd_tx, NULL, LCD_CMD_NOP)                        // Команда завершения цепочки команд
     };
     
-    // Передача
-    lcd_chain_cmd_tx(lcd_chain_init);    
+    // Передача цепочки команд
+    lcd_chain_cmd_tx(lcd_chain_init);
 }
 /*
 // Передача изображения

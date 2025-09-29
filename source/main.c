@@ -19,7 +19,7 @@ __noreturn void main(void)
     clk_init();
     timer_module_init();
     button_init();
-    lcd_init();
+    //lcd_init();
     led_init();
     lpm_init();
     
