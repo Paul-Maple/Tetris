@@ -2,7 +2,8 @@
 #define __MCU_H
 
 /* Переферия:        *
- * LPTIM1 на LSI/LSE */
+ * LPTIM1 на LSI/LSE *
+ * SPI               */
 
 // Стандартные
 #include <typedefs.h>

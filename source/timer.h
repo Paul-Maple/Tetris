@@ -81,7 +81,7 @@ typedef struct timer_s
 void timer_init(timer_t *timer, timer_mode_t mode, timer_handler_ptr handler);
 
 // Запуск программного таймера
-void timer_start(timer_t *timer, uint32_t ticks);
+void timer_start(timer_t *timer, timer_interval_t ticks);
 
 // Остановка программного таймера
 void timer_stop(timer_t *timer);

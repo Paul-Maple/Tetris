@@ -3,6 +3,13 @@
 
 #include <list.h>
 
+// 
+#define EVENT_STATIC_INIT(_item, _cb)                                           \
+{                                                                               \
+    .item = _item,                                                              \
+    .cb   = _cb                                                                 \
+}
+
 // Прототип Сallback функции
 typedef void (*event_cb_ptr) (void);
 
