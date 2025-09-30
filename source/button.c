@@ -32,12 +32,16 @@ static void button_0_pressed_event_cb(timer_t *timer)
         button->pressed = true; 
         
         // TODO: Добавить события по нажатию кнопки
-        //event_raise();
+        //event_raise(&test_event);
     }
     
     // Кнопка была в нажатом состоянии
     else
+    {
         button->pressed = false;
+        //event_raise(&test_event);
+    }
+        
 }
 
 static void button_1_pressed_event_cb(timer_t *timer)
@@ -66,14 +70,20 @@ void button_init(void)
     /* Настройка прерываний кнопок */
     
     // Запрос на прерывание с линий EXTI 0, 1, 2, 4
-    EXTI->IMR1 = EXTI_IMR1_IM0 | EXTI_IMR1_IM1 | EXTI_IMR1_IM2 | EXTI_IMR1_IM3;
+    EXTI->IMR1 |= EXTI_IMR1_IM0 | EXTI_IMR1_IM1 | EXTI_IMR1_IM2 | EXTI_IMR1_IM3;
     
     // Разрешить прерывания по фронту сигнала
-    EXTI->RTSR1 = EXTI_RTSR1_RT0 | EXTI_RTSR1_RT1 | EXTI_RTSR1_RT2 | EXTI_RTSR1_RT3;
+    EXTI->RTSR1 |= EXTI_RTSR1_RT0 | EXTI_RTSR1_RT1 | EXTI_RTSR1_RT2 | EXTI_RTSR1_RT3;
     // Разрешить прерывания по спаду сигнала 
-    EXTI->FTSR1 = EXTI_FTSR1_FT0 | EXTI_FTSR1_FT1 | EXTI_FTSR1_FT2 | EXTI_FTSR1_FT3;
+    EXTI->FTSR1 |= EXTI_FTSR1_FT0 | EXTI_FTSR1_FT1 | EXTI_FTSR1_FT2 | EXTI_FTSR1_FT3;
     
-    // Включить перывания
+    // Прерывания на пинах 0, 1, 2, 3 порта С
+    SYSCFG->EXTICR[0] = SYSCFG_EXTICR1_EXTI0_PC;
+    SYSCFG->EXTICR[1] = SYSCFG_EXTICR1_EXTI1_PC;
+    SYSCFG->EXTICR[2] = SYSCFG_EXTICR1_EXTI2_PC;
+    SYSCFG->EXTICR[3] = SYSCFG_EXTICR1_EXTI3_PC;
+    
+    // Включить перывания в NVIC
     nvic_irq_enable(EXTI0_IRQn);
     nvic_irq_enable(EXTI1_IRQn);
     nvic_irq_enable(EXTI2_IRQn);
