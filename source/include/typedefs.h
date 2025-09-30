@@ -29,9 +29,12 @@ typedef double      float64_t;
 // Проверка на нулевой указатель
 #define ASSERT_NULL_PTR(sender)     (assert(sender != NULL))
 
-    /*** Приведения ***/
+    /*** Приведения и сдвиги ***/
 // Приведение указателя на член структуры к указателю на структуру
 #define CONTAINER_OF(ptr, type, member)                                         \
     ((type *)((uint8_t *)(ptr) - offsetof(type, member)))
+
+// Сдвиг влево с приведением 
+#define SHIFT_LEFT(type, data, shift)        (((type)(data)) << (shift))
         
 #endif // __TYPEDEFS_H

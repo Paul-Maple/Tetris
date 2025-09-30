@@ -43,9 +43,6 @@
  * TODO: Прокомментировать функциональные названия кнопок вместо button_1, и тд *
  */
 
-// Сдвиг влево с приведением 
-#define IO_SHIFT_LEFT(type, data, shift)        (((type)(data)) << (shift))
-
         /*** Определение номеров функциональных пинов ***/
 // Cветодиод для теста
 #define IO_LED_PIN      13
@@ -110,29 +107,29 @@
         /*** Установка режимов работы I/O (moder) ***/
 // Установка режима Output
 #define IO_OUT_MODE_SET(pin)                                                    \
-    moder |= IO_SHIFT_LEFT(uint32_t, IO_OUTPUT_MODE_MASK, (pin)*2)
+    moder |= SHIFT_LEFT(uint32_t, IO_OUTPUT_MODE_MASK, (pin)*2)
 
 // Установка режима Input           
 #define IO_IN_MODE_SET(pin)                                                     \
-    moder |= IO_SHIFT_LEFT(uint32_t, IO_INPUT_MODE_MASK, (pin)*2)
+    moder |= SHIFT_LEFT(uint32_t, IO_INPUT_MODE_MASK, (pin)*2)
 
 // Установка режима Alternate function            
 #define IO_AF_MODE_SET(pin)                                                     \
-    moder |= IO_SHIFT_LEFT(uint32_t, IO_ALTERNATE_MODE_MASK, (pin)*2) 
+    moder |= SHIFT_LEFT(uint32_t, IO_ALTERNATE_MODE_MASK, (pin)*2) 
 
         /*** Установка режима подтяжки пинов (pupdr) ***/
 // Установка подтяжки вниз
 #define IO_PULL_DOWN_SET(pin)                                                   \
-    pupdr |= IO_SHIFT_LEFT(uint32_t, IO_PULL_DOWN_MASK, (pin)*2)
+    pupdr |= SHIFT_LEFT(uint32_t, IO_PULL_DOWN_MASK, (pin)*2)
 
 // Установка подтяжки вверх
 #define IO_PULL_UP_SET(pin)                                                     \
-    pupdr |= IO_SHIFT_LEFT(uint32_t, IO_PULL_UP_MASK, (pin)*2)
+    pupdr |= SHIFT_LEFT(uint32_t, IO_PULL_UP_MASK, (pin)*2)
 
         /*** Установка номера альтернативной функции ***/
 // Установка номера AF
 #define IO_AF_NUMBER_SET(pin, number)                                           \
-        af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)
+        af |=  SHIFT_LEFT(uint64_t, number, (pin)*4)
 
         /*** Установка конфигурации пинов ***/
 // Non connected pin
