@@ -47,7 +47,6 @@
 #define IO_SHIFT_LEFT(type, data, shift)        (((type)(data)) << (shift))
 
         /*** Определение номеров функциональных пинов ***/
-    /* --- Пины --- */
 // Cветодиод для теста
 #define IO_LED_PIN      13
 
@@ -104,6 +103,7 @@
 //#define IO_ANALOG_MODE_MASK   (0x3)                                           /*** Mode 11 ***/
 
 // Режимы подтяжки выводов
+#define IO_NO_PULL_MASK         (0x0)                                           /*** Mode 00 ***/
 #define IO_PULL_UP_MASK         (0x1)                                           /*** Mode 01 ***/
 #define IO_PULL_DOWN_MASK       (0x2)                                           /*** Mode 10 ***/           
 
