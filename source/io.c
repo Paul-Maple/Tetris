@@ -77,5 +77,5 @@ void io_init(void)
 
 void io_dcrs_set(bool state)
 {
-    GPIOA->ODR = IO_SHIFT_LEFT(uint32_t, state, IO_LCD_DCRS_PIN);
+    GPIOA->ODR = SHIFT_LEFT(uint32_t, state, IO_LCD_DCRS_PIN);
 }
