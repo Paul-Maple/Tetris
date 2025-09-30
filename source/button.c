@@ -2,6 +2,12 @@
 #include "nvic.h"
 #include "event.h"
 
+// 
+#define BUTTON_EXTI0_PORTC      (SYSCFG_EXTICR1_EXTI0 & SYSCFG_EXTICR1_EXTI0_PC)
+#define BUTTON_EXTI1_PORTC      (SYSCFG_EXTICR1_EXTI1 & SYSCFG_EXTICR1_EXTI1_PC)
+#define BUTTON_EXTI2_PORTC      (SYSCFG_EXTICR1_EXTI2 & SYSCFG_EXTICR1_EXTI2_PC)
+#define BUTTON_EXTI3_PORTC      (SYSCFG_EXTICR1_EXTI3 & SYSCFG_EXTICR1_EXTI3_PC)
+
 // Сброс флага прерывания (При записи "1")
 #define BUTTON_ISR_FLAG_CLEAR(line)     (EXTI->PR1 |= EXTI_PR1_PIF##line)
 
@@ -78,11 +84,8 @@ void button_init(void)
     EXTI->FTSR1 |= EXTI_FTSR1_FT0 | EXTI_FTSR1_FT1 | EXTI_FTSR1_FT2 | EXTI_FTSR1_FT3;
     
     // Прерывания на пинах 0, 1, 2, 3 порта С
-    SYSCFG->EXTICR[0] = SYSCFG_EXTICR1_EXTI0_PC;
-    SYSCFG->EXTICR[1] = SYSCFG_EXTICR1_EXTI1_PC;
-    SYSCFG->EXTICR[2] = SYSCFG_EXTICR1_EXTI2_PC;
-    SYSCFG->EXTICR[3] = SYSCFG_EXTICR1_EXTI3_PC;
-    
+    SYSCFG->EXTICR[0] = BUTTON_EXTI0_PORTC | BUTTON_EXTI1_PORTC | BUTTON_EXTI2_PORTC| BUTTON_EXTI3_PORTC;
+        
     // Включить перывания в NVIC
     nvic_irq_enable(EXTI0_IRQn);
     nvic_irq_enable(EXTI1_IRQn);
