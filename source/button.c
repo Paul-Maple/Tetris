@@ -2,7 +2,7 @@
 #include "nvic.h"
 #include "event.h"
 
-// 
+// Настройка регистра SYSCFG для выбора порта внешних прерываний
 #define BUTTON_EXTI0_PORTC      (SYSCFG_EXTICR1_EXTI0 & SYSCFG_EXTICR1_EXTI0_PC)
 #define BUTTON_EXTI1_PORTC      (SYSCFG_EXTICR1_EXTI1 & SYSCFG_EXTICR1_EXTI1_PC)
 #define BUTTON_EXTI2_PORTC      (SYSCFG_EXTICR1_EXTI2 & SYSCFG_EXTICR1_EXTI2_PC)
