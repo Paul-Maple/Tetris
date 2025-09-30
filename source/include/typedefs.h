@@ -29,4 +29,9 @@ typedef double      float64_t;
 // Проверка на нулевой указатель
 #define ASSERT_NULL_PTR(sender)     (assert(sender != NULL))
 
+    /*** Приведения ***/
+// Приведение указателя на член структуры к указателю на структуру
+#define CONTAINER_OF(ptr, type, member)                                         \
+    ((type *)((uint8_t *)(ptr) - offsetof(type, member)))
+        
 #endif // __TYPEDEFS_H
