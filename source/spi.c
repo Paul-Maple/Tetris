@@ -28,8 +28,8 @@ void spi_transmit(const uint8_t *data)
     ASSERT_NULL_PTR(data);
     
     //Ждем, пока не освободится буфер передатчика
-    while(!(SPI1->SR & SPI_SR_TXE))
-        { }
+    //while(!(SPI1->SR & SPI_SR_TXE))
+        //{ }
     // TODO: Переделать эту хуйню с пустым ожиданием (Она временная)
     
     // Запись в регистр данных
