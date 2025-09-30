@@ -21,10 +21,6 @@ uint8_t lcd_mac_reg = 0b00000000;
 #define LCD_CMD_INIT(mode, _time, cb, data, cmd)                                \
     LCD_CMD_STATIC_INIT(mode, _time, cb, (const void*)(data), sizeof(data), cmd)
 
-// Приведение указателя на член структуры к указателю на структуру
-#define CONTAINER_OF(ptr, type, member)                                         \
-    ((type *)((uint8_t *)(ptr) - offsetof(type, member)))      
-
 // Отправка цепочки команд по SPI
 static void lcd_chain_cmd_tx(lcd_chain_cmd_t *chain)
 {
