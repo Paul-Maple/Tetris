@@ -10,10 +10,10 @@ uint8_t lcd_mac_reg = 0b00000000;
 // Статическая инициализация элемента цепочки команд
 #define LCD_CMD_STATIC_INIT(_time, _data, _size, _cmd)                          \
 {                                                                               \
-    .time  = _time,                                                             \
-    .data  = _data,                                                             \
-    .size  = _size,                                                             \
-    .cmd   = _cmd                                                               \
+    .time = _time,                                                              \
+    .data = _data,                                                              \
+    .size = _size,                                                              \
+    .cmd  = _cmd                                                                \
 }
 
 //  Инициализация элемента цепочки команд
@@ -99,6 +99,7 @@ lcd_chain_cmd_t lcd_cmd_collum_init(const lcd_image_t *image)
 {
     lcd_chain_cmd_t cmd_collum_set;
     cmd_collum_set.time = 0;
+    // TODO: Проверить приведение uint16_t к const void*
     cmd_collum_set.data = &image->collum_start;
     cmd_collum_set.size = sizeof(cmd_collum_set.data);
     cmd_collum_set.cmd  =  LCD_CMD_COLLUM_SET;
@@ -109,15 +110,15 @@ lcd_chain_cmd_t lcd_cmd_collum_init(const lcd_image_t *image)
 static void lcd_image_set(const lcd_image_t *image)
 {
     lcd_chain_cmd_t collum_set = lcd_cmd_collum_init(image);
+    
     // Массив элементов цепочки команд
-    /*lcd_chain_cmd_t chain_image[] = 
+    lcd_chain_cmd_t chain_image[] = 
     {
-        // Установить адреса начальной и конечной строки
+        collum_set,                                                             // Установить адреса начальной и конечной строки
         // Установить адреса началного и конечного столбца
         // Запись данных
     };
 
     // Передача 
-    lcd_chain_cmd_tx(chain_image);   */ 
+    lcd_chain_cmd_tx(chain_image);  
 }
-
