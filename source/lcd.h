@@ -5,6 +5,7 @@
 #include "timer.h"
 
 // Перечисление команд управления дисплеем
+// TODO: Убрать _SET
 typedef enum
 {    
     LCD_CMD_SOFT_RESET      = 0x01,     // Программный сброс
