@@ -17,8 +17,8 @@ uint8_t lcd_mac_reg = 0b00000000;
 }
 
 //  Инициализация элемента цепочки команд
-#define LCD_CMD_INIT(_time, data, cmd)                                          \
-    LCD_CMD_STATIC_INIT(_time, (const void*)(data), sizeof(data), cmd)
+#define LCD_CMD_INIT(time, data, cmd)                                           \
+    LCD_CMD_STATIC_INIT(time, (const void*)(data), sizeof(data), cmd)
 
 // Таймер для задержки отправки команды 
 //static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_chain_cmd_tx);
@@ -73,39 +73,51 @@ static void lcd_cmd_tx(timer_t *timer)
     
 }   
 */
+
 void lcd_init(void)
 {
     // Включить подсветку дисплея
     io_led_on();
     
     // Массив элементов цепочки команд
-    static lcd_chain_cmd_t lcd_chain_init[4] = 
+    static lcd_chain_cmd_t lcd_chain_init[] = 
     {
         // Инициализация команд
         //-----------Время задержки---Данные--Команда 
         LCD_CMD_INIT(LCD_TIC_RESET,     NULL, LCD_CMD_SOFT_RESET),              // Программный сброс
         LCD_CMD_INIT(LCD_TIC_SLEEP_OUT, NULL, LCD_CMD_SLEEP_OUT),               // Выход из режима энергосбережения
         LCD_CMD_INIT(0,                 NULL, LCD_CMD_DISPLAY_ON),              // Включить дисплей
-        LCD_CMD_INIT(0,                 NULL, LCD_CMD_NOP)                      // Команда завершения цепочки команд
+        LCD_CMD_INIT(0,                 NULL, LCD_CMD_NOP),                     // Команда завершения цепочки команд
     };
     
     // Передача цепочки команд
     lcd_chain_cmd_tx(lcd_chain_init);
 }
-/*
-// Передача изображения
-static void lcd_pixels_set()
+
+// Инициализация элемента цепочки команд для установки столбцов записи
+lcd_chain_cmd_t lcd_cmd_collum_init(const lcd_image_t *image)
 {
-    // Массив элементов цепочки команд
-    static const lcd_chain_cmd_t lcd_chain_image_set[4] = 
-    {
-        // Установить адрес строки
-        // Установить адрес столбца
-        // Запись данных
-        LCD_CMD_CHAIN_END
-    };
-    
-    // Передача 
-    lcd_chain_cmd_tx(lcd_chain_image_set);    
+    lcd_chain_cmd_t cmd_collum_set;
+    cmd_collum_set.time = 0;
+    cmd_collum_set.data = &image->collum_start;
+    cmd_collum_set.size = sizeof(cmd_collum_set.data);
+    cmd_collum_set.cmd  =  LCD_CMD_COLLUM_SET;
+    return cmd_collum_set;
 }
-*/
+
+// Передача изображения
+static void lcd_image_set(const lcd_image_t *image)
+{
+    lcd_chain_cmd_t collum_set = lcd_cmd_collum_init(image);
+    // Массив элементов цепочки команд
+    /*lcd_chain_cmd_t chain_image[] = 
+    {
+        // Установить адреса начальной и конечной строки
+        // Установить адреса началного и конечного столбца
+        // Запись данных
+    };
+
+    // Передача 
+    lcd_chain_cmd_tx(chain_image);   */ 
+}
+
