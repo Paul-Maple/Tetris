@@ -12,8 +12,8 @@ typedef enum
     LCD_CMD_MAC_SET         = 0x36,     // Настройка доступа к памяти
     LCD_CMD_DISPLAY_ON      = 0x29,     // Включение дисплея
     LCD_CMD_DISPLAY_OFF     = 0x28,     // Выключение дисплея
-    LCD_CMD_COLLUM_PTR_SET  = 0x2A,     // Установка адреса столбца
-    LCD_CMD_LINE_PTR_SET    = 0x2B,     // Установка адреса строки    
+    LCD_CMD_COLLUM_SET      = 0x2A,     // Установка адреса столбца
+    LCD_CMD_LINE_SET        = 0x2B,     // Установка адреса строки    
     LCD_CMD_MEMORY_SET      = 0x2C,     // Передача данных от МК до кадровой памяти
     LCD_PIXEL_FORMAT_SET    = 0x3A,     // Установка формата RGB
     LCD_GAMMA_SET           = 0x26,     // Установка гаммы
@@ -51,21 +51,21 @@ typedef struct
     
 } lcd_chain_cmd_t;
 
-// Структура адресов строки и столбца для записи
+// Структура изображения
 typedef struct
 {
-    // Указатели начала записи
+    // Столбец начала и конца записи
     uint16_t collum_start;
-    uint16_t line_start;
-    
-    // Указатели конца записи
     uint16_t collum_end;
+    
+    // Строка начала и конца записи
+    uint16_t line_start;
     uint16_t line_end;
     
     // Данные для записи
     void *rgb_data;
     
-} lcd_pixels_prt_t;
+} lcd_image_t;
 
 // Инициализация дисплея
 void lcd_init(void);
