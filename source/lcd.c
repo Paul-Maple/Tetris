@@ -87,36 +87,75 @@ void lcd_init(void)
         LCD_CMD_INIT(LCD_TIC_RESET,     NULL, LCD_CMD_SOFT_RESET),              // Программный сброс
         LCD_CMD_INIT(LCD_TIC_SLEEP_OUT, NULL, LCD_CMD_SLEEP_OUT),               // Выход из режима энергосбережения
         LCD_CMD_INIT(0,                 NULL, LCD_CMD_DISPLAY_ON),              // Включить дисплей
-        LCD_CMD_INIT(0,                 NULL, LCD_CMD_NOP),                     // Команда завершения цепочки команд
+        LCD_CMD_INIT(0,                 NULL, LCD_CMD_NOP)                      // Команда завершения цепочки команд
     };
     
     // Передача цепочки команд
     lcd_chain_cmd_tx(lcd_chain_init);
 }
 
-// Инициализация элемента цепочки команд для установки столбцов записи
-lcd_chain_cmd_t lcd_cmd_collum_init(const lcd_image_t *image)
+// Инициализация элемента цепочки команд для установки координат записи
+static lcd_chain_cmd_t lcd_cmd_position_set(const lcd_image_t *image, lcd_cmd_t cmd)
 {
-    lcd_chain_cmd_t cmd_collum_set;
-    cmd_collum_set.time = 0;
-    // TODO: Проверить приведение uint16_t к const void*
-    cmd_collum_set.data = &image->collum_start;
-    cmd_collum_set.size = sizeof(cmd_collum_set.data);
-    cmd_collum_set.cmd  =  LCD_CMD_COLLUM_SET;
-    return cmd_collum_set;
+    uint16_t data[2];
+    
+    switch(cmd)
+    {
+        case LCD_CMD_COLLUM_SET:
+            {
+                data[0] = image->collum_start;
+                data[1] = image->collum_end;
+                break;
+            }
+            
+        case LCD_CMD_LINE_SET:
+            {       
+                data[0] = image->line_start;
+                data[1] = image->line_end;
+                break;
+            }
+        default:
+            assert(false);
+    }
+    
+    lcd_chain_cmd_t cmd_position_set;
+    
+    cmd_position_set.time = 0;
+    cmd_position_set.data = data;
+    cmd_position_set.size = sizeof(data);
+    cmd_position_set.cmd  = cmd;
+    
+    return cmd_position_set;
+}
+
+//
+static lcd_chain_cmd_t lcd_color_set(const lcd_image_t *image, lcd_cmd_t cmd)
+{
+    lcd_chain_cmd_t cmd_color_set;
+    
+    cmd_color_set.time = 0;
+    cmd_color_set.data = &image->rgb_data;
+    cmd_color_set.size = sizeof(*(&image->rgb_data));
+    cmd_color_set.cmd  = cmd;
+    
+    return cmd_color_set;
 }
 
 // Передача изображения
 static void lcd_image_set(const lcd_image_t *image)
 {
-    lcd_chain_cmd_t collum_set = lcd_cmd_collum_init(image);
+    // не дописана
+    lcd_chain_cmd_t collum_set = lcd_cmd_position_set(image, LCD_CMD_COLLUM_SET);
+    lcd_chain_cmd_t line_set   = lcd_cmd_position_set(image, LCD_CMD_LINE_SET);
+    lcd_chain_cmd_t data_set   = lcd_color_set(image, LCD_CMD_MEMORY_SET);
     
     // Массив элементов цепочки команд
     lcd_chain_cmd_t chain_image[] = 
     {
-        collum_set,                                                             // Установить адреса начальной и конечной строки
-        // Установить адреса началного и конечного столбца
-        // Запись данных
+        collum_set,                             // Установить адреса начальной и конечной строки
+        line_set,                               // Установить адреса началного и конечного столбца
+        data_set,                               // Запись данных
+        LCD_CMD_INIT(0, NULL, LCD_CMD_NOP)      // Команда завершения цепочки команд        
     };
 
     // Передача 
