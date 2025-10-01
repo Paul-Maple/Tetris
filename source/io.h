@@ -3,6 +3,9 @@
 
 #include "mcu.h"
 
+// Сдвиг влево с приведением 
+#define IO_SHIFT_LEFT(type, data, shift)        (((type)(data)) << (shift))
+
 /***
         Регистры I/O:
   moder   -   Режим работы пина 
@@ -53,7 +56,7 @@
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
 #define IO_LCD_DCRS_PIN     3                                                   /*** DC/RS, Port A ***/
 // TODO: Реализовать подсветку на ШИМе
-#define IO_LCD_LED_PIN      2                                                   /*** LED    ***/
+#define IO_LCD_LED_PIN      2                                                   /*** LED,   Port A ***/
 
 // Пины для отладки (Режим AF0)
 #define IO_JTMS_PIN     13                                                      /*** JTAG pin ***/
@@ -107,29 +110,29 @@
         /*** Установка режимов работы I/O (moder) ***/
 // Установка режима Output
 #define IO_OUT_MODE_SET(pin)                                                    \
-    moder |= SHIFT_LEFT(uint32_t, IO_OUTPUT_MODE_MASK, (pin)*2)
+    moder |= IO_SHIFT_LEFT(uint32_t, IO_OUTPUT_MODE_MASK, (pin)*2)
 
 // Установка режима Input           
 #define IO_IN_MODE_SET(pin)                                                     \
-    moder |= SHIFT_LEFT(uint32_t, IO_INPUT_MODE_MASK, (pin)*2)
+    moder |= IO_SHIFT_LEFT(uint32_t, IO_INPUT_MODE_MASK, (pin)*2)
 
 // Установка режима Alternate function            
 #define IO_AF_MODE_SET(pin)                                                     \
-    moder |= SHIFT_LEFT(uint32_t, IO_ALTERNATE_MODE_MASK, (pin)*2) 
+    moder |= IO_SHIFT_LEFT(uint32_t, IO_ALTERNATE_MODE_MASK, (pin)*2) 
 
         /*** Установка режима подтяжки пинов (pupdr) ***/
 // Установка подтяжки вниз
 #define IO_PULL_DOWN_SET(pin)                                                   \
-    pupdr |= SHIFT_LEFT(uint32_t, IO_PULL_DOWN_MASK, (pin)*2)
+    pupdr |= IO_SHIFT_LEFT(uint32_t, IO_PULL_DOWN_MASK, (pin)*2)
 
 // Установка подтяжки вверх
 #define IO_PULL_UP_SET(pin)                                                     \
-    pupdr |= SHIFT_LEFT(uint32_t, IO_PULL_UP_MASK, (pin)*2)
+    pupdr |= IO_SHIFT_LEFT(uint32_t, IO_PULL_UP_MASK, (pin)*2)
 
         /*** Установка номера альтернативной функции ***/
 // Установка номера AF
 #define IO_AF_NUMBER_SET(pin, number)                                           \
-        af |=  SHIFT_LEFT(uint64_t, number, (pin)*4)
+        af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)
 
         /*** Установка конфигурации пинов ***/
 // Non connected pin
@@ -161,5 +164,8 @@ void io_init(void);
 
 // Установка состояния пина DCRS
 void io_dcrs_set(bool state);
+
+// Включить подсветку дисплея
+void io_led_on();
 
 #endif // __GPIO_H
