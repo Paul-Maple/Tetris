@@ -2,18 +2,27 @@
 #include "mcu.h"
 #include "nvic.h"
 
-void spi_enable(void)
+// Подготовка SPI к передаче
+static void spi_preparing()
 {
     // Включить тактирование SPI1
-    RCC->APB2ENR = RCC_APB2ENR_SPI1EN; 
+    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
     
+    /* Регистры CR1 и CR2 должны быть настроены перед включением SPI */
     // Настройка регистров SPI
     SPI1->CR1 = SPI_CR1_BR_0 |          // Делитель частоты /4
-                SPI_CR1_MSTR |          // Режим мастера
-                SPI_CR1_SPE;            // Включить SPI
+                SPI_CR1_MSTR;           // Режим мастера
     
     SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |     // Передача по 8 бит
                 SPI_CR2_SSOE;                                    // Без режима мультимастер
+}
+
+void spi_enable(void)
+{
+    // Подготовка
+    spi_preparing();
+    // Включить SPI
+    SPI1->CR1 |= SPI_CR1_SPE; 
 }
 
 void spi_disable(void)
