@@ -75,7 +75,16 @@ void io_init(void)
     IO_SAVE(H);
 }
 
+// TODO: Сделать значение для записи в регистр ODR на макросах
 void io_dcrs_set(bool state)
 {
-    GPIOA->ODR = SHIFT_LEFT(uint32_t, state, IO_LCD_DCRS_PIN);
+    if (state)
+        GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_DCRS_PIN);
+    else
+        GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_DCRS_PIN);
+}
+
+void io_led_on()
+{
+    GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_LED_PIN);
 }
