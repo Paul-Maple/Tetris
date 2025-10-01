@@ -64,6 +64,7 @@ typedef struct
     
     // Данные для записи
     void *rgb_data;
+    // TODO: мб добавить поле размера данных
     
 } lcd_image_t;
 
