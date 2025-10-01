@@ -8,9 +8,8 @@
 uint8_t lcd_mac_reg = 0b00000000;
 
 // Статическая инициализация элемента цепочки команд
-#define LCD_CMD_STATIC_INIT(mode, _time, cb, _data, _size, _cmd)                \
+#define LCD_CMD_STATIC_INIT(_time, _data, _size, _cmd)                          \
 {                                                                               \
-    .timer = TIMER_STATIC_INIT(mode, cb),                                       \
     .time  = _time,                                                             \
     .data  = _data,                                                             \
     .size  = _size,                                                             \
@@ -18,14 +17,20 @@ uint8_t lcd_mac_reg = 0b00000000;
 }
 
 //  Инициализация элемента цепочки команд
-#define LCD_CMD_INIT(mode, _time, cb, data, cmd)                                \
-    LCD_CMD_STATIC_INIT(mode, _time, cb, (const void*)(data), sizeof(data), cmd)
+#define LCD_CMD_INIT(_time, data, cmd)                                          \
+    LCD_CMD_STATIC_INIT(_time, (const void*)(data), sizeof(data), cmd)
+
+// Таймер для задержки отправки команды 
+//static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_chain_cmd_tx);
 
 // Отправка цепочки команд по SPI
 static void lcd_chain_cmd_tx(lcd_chain_cmd_t *chain)
 {
     ASSERT_NULL_PTR(chain);
     
+    // Счётчик команд в цепочке
+    //static uint8_t cld_coutn_cmd = 0;
+
     // Включить SPI
     spi_enable();
     
@@ -55,40 +60,35 @@ static void lcd_chain_cmd_tx(lcd_chain_cmd_t *chain)
                 spi_transmit(&buffer_data[i]);
         }
         // Если требуется задержка перед отправкой следующей команды
-        if (chain->time != 0)
-        {
-            // Заводим таймер
-            timer_start(&chain->timer, chain->time); 
-            // Прекращаем обработку текущей цепочки команд
-            break;
-        }      
+        //if (chain->time != 0)     
     }
     
     // Отключить SPI
     spi_disable();
 }
-
+/*
 // Отправка оставшейся цепочки команд после задержки
 static void lcd_cmd_tx(timer_t *timer)
 {
-    lcd_chain_cmd_t *chain = CONTAINER_OF(timer, lcd_chain_cmd_t, timer);
-    // Следующий элемент
-    chain++;
-    // Передача следующего элемента цепочки команд
-    lcd_chain_cmd_tx(chain);
-}
-
+    
+}   
+*/
 void lcd_init(void)
 {
+    // Включить подсветку дисплея
+    io_led_on();
+    
     // Массив элементов цепочки команд
-    static lcd_chain_cmd_t lcd_chain_init[] = 
+    static lcd_chain_cmd_t lcd_chain_init[4] = 
     {
-        LCD_CMD_INIT(TIMER_MODE_ONE_SHOT, LCD_TIC_RESET, lcd_cmd_tx, NULL, LCD_CMD_SOFT_RESET),    // Программный сброс
-        LCD_CMD_INIT(TIMER_MODE_ONE_SHOT, LCD_TIC_SLEEP_OUT, lcd_cmd_tx, NULL, LCD_CMD_SLEEP_OUT), // Выход из режима энергосбережения
-        LCD_CMD_INIT(TIMER_MODE_ONE_SHOT, 0, lcd_cmd_tx, NULL, LCD_CMD_DISPLAY_ON),                // Включить дисплей
-        LCD_CMD_INIT(TIMER_MODE_ONE_SHOT, 0, lcd_cmd_tx, NULL, LCD_CMD_NOP)                        // Команда завершения цепочки команд
+        // Инициализация команд
+        //-----------Время задержки---Данные--Команда 
+        LCD_CMD_INIT(LCD_TIC_RESET,     NULL, LCD_CMD_SOFT_RESET),              // Программный сброс
+        LCD_CMD_INIT(LCD_TIC_SLEEP_OUT, NULL, LCD_CMD_SLEEP_OUT),               // Выход из режима энергосбережения
+        LCD_CMD_INIT(0,                 NULL, LCD_CMD_DISPLAY_ON),              // Включить дисплей
+        LCD_CMD_INIT(0,                 NULL, LCD_CMD_NOP)                      // Команда завершения цепочки команд
     };
-   
+    
     // Передача цепочки команд
     lcd_chain_cmd_tx(lcd_chain_init);
 }

@@ -1,11 +1,9 @@
 #ifndef __LCD_H
 #define __LCD_H
 
-#include <typedefs.h>
 #include "timer.h"
 
 // Перечисление команд управления дисплеем
-// TODO: Убрать _SET
 typedef enum
 {    
     LCD_CMD_SOFT_RESET      = 0x01,     // Программный сброс
@@ -42,9 +40,7 @@ enum
 // Структура элемента цепочки команд
 typedef struct
 {
-    // Таймер для задержки отправки команды (ПЕРВЫМ В СТРУКТУРЕ !!!!!)
-    timer_t timer;
-    // Интервал срабатывания таймера
+    // Интервал срабатывания таймера задержки команды
     timer_interval_t time;
     // Указатель на данные
     const void *data;
