@@ -10,8 +10,8 @@ void mcu_init(void)
     
     // Тактирование регистра SYSCFG для настройки прерываний EXTI
     RCC->APB2ENR = RCC_APB2ENR_SYSCFGEN;     
-    // Включить тактирование GPIO
     
+    // Включить тактирование GPIO
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN | RCC_AHB2ENR_GPIOBEN |     // Порты А, В
                     RCC_AHB2ENR_GPIOCEN | RCC_AHB2ENR_GPIOHEN;      // Порты С, Н
 }
