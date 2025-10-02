@@ -1,14 +1,14 @@
 // Для включения прерываний глобально
 #include "mcu.h"
 // Для инициализации модулей
-#include "io.h"
-#include "clk.h"
-#include "spi.h"
+#include <io.h>
+#include <clk.h>
+#include <spi.h>
 #include "timer.h"
-#include "button.h"
-#include "lcd.h"
-#include "led.h"
-#include "lpm.h"
+#include <button.h>
+#include <lcd.h>
+#include <led.h>
+#include <lpm.h>
 #include "event.h"
 
 #include "test.h"
