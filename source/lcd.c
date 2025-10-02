@@ -26,7 +26,7 @@ uint8_t lcd_mac_reg = 0b00000000;
 static void lcd_chain_cmd_tx( lcd_chain_cmd_t *chain)
 {
     ASSERT_NULL_PTR(chain);
-
+    
     // Включить SPI
     spi_enable();
     
