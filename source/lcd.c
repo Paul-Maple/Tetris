@@ -1,5 +1,5 @@
 #include "lcd.h"
-#include "lcd_reg.h"
+#include <lcd_reg.h>
 #include "spi.h"
 #include "io.h"
 
@@ -8,34 +8,28 @@
 uint8_t lcd_mac_reg = 0b00000000;
 
 // Статическая инициализация элемента цепочки команд
-#define LCD_CMD_STATIC_INIT(_time, _data, _size, _cmd)                          \
+#define LCD_CMD_STATIC_INIT(_data, _size, _cmd)                                 \
 {                                                                               \
-    .time = _time,                                                              \
     .data = _data,                                                              \
     .size = _size,                                                              \
     .cmd  = _cmd                                                                \
 }
 
 //  Инициализация элемента цепочки команд
-#define LCD_CMD_INIT(time, data, cmd)                                           \
-    LCD_CMD_STATIC_INIT(time, (const void*)(data), sizeof(data), cmd)
+#define LCD_CMD_INIT(data, cmd)                                                 \
+    LCD_CMD_STATIC_INIT((void*)(data), sizeof(data), cmd)
 
 // Таймер для задержки отправки команды 
 //static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_chain_cmd_tx);
 
 // Отправка цепочки команд по SPI
-static void lcd_chain_cmd_tx(lcd_chain_cmd_t *chain)
+static void lcd_chain_cmd_tx( lcd_chain_cmd_t *chain)
 {
     ASSERT_NULL_PTR(chain);
-    
-    // Счётчик команд в цепочке
-    //static uint8_t cld_coutn_cmd = 0;
 
     // Включить SPI
     spi_enable();
     
-    // Буфер для команд
-    uint8_t buffer_cmd;
     // Цикл, пока не дойдёт до команды завершения передачи цепочки
     for ( ; chain->cmd != LCD_CMD_NOP; chain++)
     {
@@ -43,11 +37,10 @@ static void lcd_chain_cmd_tx(lcd_chain_cmd_t *chain)
         io_dcrs_set(LCD_CMD);
         
         // Отправка команды
-        buffer_cmd = (uint8_t)chain->cmd;
-        spi_transmit(&buffer_cmd);
+        spi_transmit(&chain->cmd);
         
         // Если команда имеет параметры
-        if (chain->data != NULL)
+        if (chain->size > 0)
         {
             // Установить вывод DCRS для отправки данных
             io_dcrs_set(LCD_DATA);
@@ -60,19 +53,12 @@ static void lcd_chain_cmd_tx(lcd_chain_cmd_t *chain)
                 spi_transmit(&buffer_data[i]);
         }
         // Если требуется задержка перед отправкой следующей команды
-        //if (chain->time != 0)     
+        //if (chain->time != 0)
     }
     
     // Отключить SPI
     spi_disable();
 }
-/*
-// Отправка оставшейся цепочки команд после задержки
-static void lcd_cmd_tx(timer_t *timer)
-{
-    
-}   
-*/
 
 void lcd_init(void)
 {
@@ -80,84 +66,35 @@ void lcd_init(void)
     io_led_on();
     
     // Массив элементов цепочки команд
-    static lcd_chain_cmd_t lcd_chain_init[] = 
+    static  lcd_chain_cmd_t lcd_chain_init[] =    
     {
         // Инициализация команд
-        //-----------Время задержки---Данные--Команда 
-        LCD_CMD_INIT(LCD_TIC_RESET,     NULL, LCD_CMD_SOFT_RESET),              // Программный сброс
-        LCD_CMD_INIT(LCD_TIC_SLEEP_OUT, NULL, LCD_CMD_SLEEP_OUT),               // Выход из режима энергосбережения
-        LCD_CMD_INIT(0,                 NULL, LCD_CMD_DISPLAY_ON),              // Включить дисплей
-        LCD_CMD_INIT(0,                 NULL, LCD_CMD_NOP)                      // Команда завершения цепочки команд
+        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET),              // Программный сброс
+        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT),               // Выход из режима энергосбережения
+        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON),              // Включить дисплей
+        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_NOP)                      // Команда завершения цепочки команд
     };
     
     // Передача цепочки команд
     lcd_chain_cmd_tx(lcd_chain_init);
 }
 
-// Инициализация элемента цепочки команд для установки координат записи
-static lcd_chain_cmd_t lcd_cmd_position_set(const lcd_image_t *image, lcd_cmd_t cmd)
-{
-    uint16_t data[2];
-    
-    switch(cmd)
-    {
-        case LCD_CMD_COLLUM_SET:
-            {
-                data[0] = image->collum_start;
-                data[1] = image->collum_end;
-                break;
-            }
-            
-        case LCD_CMD_LINE_SET:
-            {       
-                data[0] = image->line_start;
-                data[1] = image->line_end;
-                break;
-            }
-        default:
-            assert(false);
-    }
-    
-    lcd_chain_cmd_t cmd_position_set;
-    
-    cmd_position_set.time = 0;
-    cmd_position_set.data = data;
-    cmd_position_set.size = sizeof(data);
-    cmd_position_set.cmd  = cmd;
-    
-    return cmd_position_set;
-}
-
-//
-static lcd_chain_cmd_t lcd_color_set(const lcd_image_t *image, lcd_cmd_t cmd)
-{
-    lcd_chain_cmd_t cmd_color_set;
-    
-    cmd_color_set.time = 0;
-    cmd_color_set.data = &image->rgb_data;
-    cmd_color_set.size = sizeof(*(&image->rgb_data));
-    cmd_color_set.cmd  = cmd;
-    
-    return cmd_color_set;
-}
-
 // Передача изображения
-static void lcd_image_set(const lcd_image_t *image)
+void lcd_image_set(const lcd_position_t *pos, const uint16_t color)
 {
-    // не дописана
-    lcd_chain_cmd_t collum_set = lcd_cmd_position_set(image, LCD_CMD_COLLUM_SET);
-    lcd_chain_cmd_t line_set   = lcd_cmd_position_set(image, LCD_CMD_LINE_SET);
-    lcd_chain_cmd_t data_set   = lcd_color_set(image, LCD_CMD_MEMORY_SET);
+    lcd_chain_cmd_t collum_set = LCD_CMD_INIT(pos->x, LCD_CMD_COLLUM_SET);
+    lcd_chain_cmd_t line_set = LCD_CMD_INIT(pos->y, LCD_CMD_LINE_SET);
+    lcd_chain_cmd_t color_set = LCD_CMD_INIT(color, LCD_CMD_MEMORY_SET);
     
     // Массив элементов цепочки команд
-    lcd_chain_cmd_t chain_image[] = 
+     lcd_chain_cmd_t chain_image[] = 
     {
-        collum_set,                             // Установить адреса начальной и конечной строки
-        line_set,                               // Установить адреса началного и конечного столбца
-        data_set,                               // Запись данных
-        LCD_CMD_INIT(0, NULL, LCD_CMD_NOP)      // Команда завершения цепочки команд        
+        collum_set,                             // Установить адреса начальной и конечной столбца
+        line_set,                               // Установить адреса началного и конечного строки
+        color_set,                              // Запись цвета
+        LCD_CMD_INIT(NULL, LCD_CMD_NOP)         // Команда завершения цепочки команд        
     };
-
-    // Передача 
+    
+    // Передача
     lcd_chain_cmd_tx(chain_image);  
 }

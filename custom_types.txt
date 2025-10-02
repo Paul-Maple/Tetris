@@ -15,5 +15,6 @@ button_t
 
 lcd_chain_cmd_t
 lcd_cmd_t
-lcd_image_t
+lcd_position_t
+lcd_color_t
 

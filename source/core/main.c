@@ -11,6 +11,8 @@
 #include "lpm.h"
 #include "event.h"
 
+#include "test.h"
+
 __noreturn void main(void)
 {
     // Порядок инициализации модулей не менять !!!!!!!
@@ -22,6 +24,8 @@ __noreturn void main(void)
     lcd_init();
     led_init();
     lpm_init();
+    
+    test_init();
     
     // Главный цикл
     for(MCU_IQR_ENABLE();;)

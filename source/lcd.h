@@ -1,10 +1,10 @@
 #ifndef __LCD_H
 #define __LCD_H
 
-#include "timer.h"
+#include <timer.h>
 
 // Перечисление команд управления дисплеем
-typedef enum
+enum
 {    
     LCD_CMD_SOFT_RESET      = 0x01,     // Программный сброс
     LCD_CMD_SLEEP_OUT       = 0x11,     // Выход из режима сна       
@@ -21,7 +21,14 @@ typedef enum
     
     LCD_CMD_NOP             = 0x00      // Пустая команда (Для завершения передачи)
     // TODO: Добавить необходимые команды
-} lcd_cmd_t;
+};
+
+// Перечисление цветов (Формат: 16 бит)
+enum
+{
+    LCD_COLOR_RED = 0xF800, 
+    // TODO: Дописать цвета
+};
 
 // Перечисление состояний пина DCRS 
 enum
@@ -29,46 +36,39 @@ enum
     LCD_CMD  = 0,    // Команда
     LCD_DATA = 1     // Данные
 };
-
+/*
 // Перечисление тиков таймера для задержки отправки команд
 enum
 {
     LCD_TIC_RESET     = TIMER_TICKS_MS(5),
     LCD_TIC_SLEEP_OUT = TIMER_TICKS_MS(5)
-};
+};  */
 
 // Структура элемента цепочки команд
 typedef struct
 {
-    // Интервал срабатывания таймера задержки команды
-    timer_interval_t time;
-    // Указатель на данные
-    const void *data;
+    // Команда
+    uint8_t cmd;
     // Размер данных (в байтах)
     uint8_t size;
-    // Команда
-    lcd_cmd_t cmd;
+    // Указатель на данные
+    const void *data;
     
 } lcd_chain_cmd_t;
 
-// Структура изображения
+// Структура координат записи
 typedef struct
 {
-    // Столбец начала и конца записи
-    uint16_t collum_start;
-    uint16_t collum_end;
+    // Координаты начала и конца записи
+    uint16_t x[2];
+    uint16_t y[2];
     
-    // Строка начала и конца записи
-    uint16_t line_start;
-    uint16_t line_end;
-    
-    // Данные для записи
-    void *rgb_data;
-    // TODO: мб добавить поле размера данных
-    
-} lcd_image_t;
+} lcd_position_t;
 
 // Инициализация дисплея
 void lcd_init(void);
+
+// Установка изображения
+void lcd_image_set(const lcd_position_t *pos, const uint16_t color);
 
 #endif // __LCD_H

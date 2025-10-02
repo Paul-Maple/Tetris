@@ -1,6 +1,6 @@
 #include "spi.h"
-#include "mcu.h"
-#include "nvic.h"
+#include <mcu.h>
+#include <nvic.h>
 
 // Подготовка SPI к передаче
 static void spi_preparing()
@@ -19,7 +19,7 @@ static void spi_preparing()
 
 void spi_enable(void)
 {
-    // Подготовка
+    // Подготовка шины SPI
     spi_preparing();
     // Включить SPI
     SPI1->CR1 |= SPI_CR1_SPE; 
@@ -35,12 +35,6 @@ void spi_disable(void)
 void spi_transmit(const uint8_t *data)
 {
     ASSERT_NULL_PTR(data);
-    
-    //Ждем, пока не освободится буфер передатчика
-    //while(!(SPI1->SR & SPI_SR_TXE))
-        //{ }
-    // TODO: Переделать эту хуйню с пустым ожиданием (Она временная)
-    
     // Запись в регистр данных
-    SPI1->DR = (*data);
+    SPI1->DR = *data;
 }
