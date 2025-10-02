@@ -55,6 +55,7 @@
 #define IO_LCD_SDA_PIN      7                                                   /*** SDA,   Port A ***/
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
 #define IO_LCD_DCRS_PIN     3                                                   /*** DC/RS, Port A ***/
+#define IO_LCD_MISO_PIN     6
 // TODO: Реализовать подсветку на ШИМе
 #define IO_LCD_LED_PIN      2                                                   /*** LED,   Port A ***/
 
