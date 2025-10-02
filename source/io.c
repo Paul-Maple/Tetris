@@ -11,11 +11,11 @@ void io_init(void)
     IO_RESET();
         IO_NC(0);
         IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
-        IO_OUT_PU(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
+        IO_OUT_PD(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
         IO_OUT_PD(IO_LCD_DCRS_PIN);                                             // Пин выбора команды/данных
         IO_AF_PD(IO_LCD_CSX_PIN, 5);                                            // Пин выбора slave-устройства
         IO_NC(5);
-        IO_NC(6);
+        IO_AF_PD(IO_LCD_MISO_PIN, 5);
         IO_AF_PD(IO_LCD_SDA_PIN, 5);                                            // Пин для передачи данных
         IO_NC(8);
         IO_NC(9);
@@ -75,7 +75,6 @@ void io_init(void)
     IO_SAVE(H);
 }
 
-// TODO: Сделать значение для записи в регистр ODR на макросах
 void io_dcrs_set(bool state)
 {
     if (state)
