@@ -10,7 +10,7 @@ static void spi_preparing()
     
     /* Регистры CR1 и CR2 должны быть настроены перед включением SPI */
     // Настройка регистров SPI
-    SPI1->CR1 = SPI_CR1_BR_0 |          // Делитель частоты /4
+    SPI1->CR1 = SPI_CR1_BR_0 | SPI_CR1_BR_1         // Делитель частоты /4
                 SPI_CR1_MSTR |          // Режим мастера
                 SPI_CR1_BIDIMODE |      // Simplex mode
                 SPI_CR1_BIDIOE;         // Tx only
@@ -37,7 +37,23 @@ void spi_disable(void)
 void spi_transmit(const uint8_t *data)
 {
     ASSERT_NULL_PTR(data);
+	
+	// Проверяем, что SPI включен и тактируется
+    if (!(RCC->APB2ENR & RCC_APB2ENR_SPI1EN)) 
+	{} // Обработка ошибки - SPI не тактируется
+
+    if (!(SPI1->CR1 & SPI_CR1_SPE)) 
+	{} // Обработка ошибки - SPI не включен
+
+	// Ждем, пока буфер передачи не станет пустым
+    while (!(SPI1->SR & SPI_SR_TXE));
     
     // Запись в регистр данных
     //SPI1->DR = (*data);
+
+    while (SPI1->SR & SPI_SR_BSY) 
+	{} // Ждем завершения передачи
+	//Регистр SCB->CFSR - причина HardFault
+	//Регистр SCB->HFSR - статус HardFault
+	//Регистр SCB->MMFAR - адрес памяти, вызвавший fault
 }
