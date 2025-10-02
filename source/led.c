@@ -1,5 +1,5 @@
 #include "led.h"
-#include "mcu.h"
+#include <mcu.h>
 
 /* LED используется для проверки работы программного таймера */
 

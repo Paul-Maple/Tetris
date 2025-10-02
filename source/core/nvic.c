@@ -1,9 +1,9 @@
 #include "nvic.h"
 // Модули, в которых есть перрывания
 #include "timer.h"
-#include "clk.h"
-#include "spi.h"
-#include "button.h"
+#include <clk.h>
+#include <spi.h>
+#include <button.h>
 
 // Имя секции стека
 #define NVIC_SECTION_STACK      "CSTACK"

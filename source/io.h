@@ -1,7 +1,7 @@
 #ifndef __IO_H
 #define __IO_H
 
-#include "mcu.h"
+#include <mcu.h>
 
 // Сдвиг влево с приведением 
 #define IO_SHIFT_LEFT(type, data, shift)        (((type)(data)) << (shift))
