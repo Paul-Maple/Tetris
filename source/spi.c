@@ -21,7 +21,7 @@ static void spi_preparing()
 
 void spi_enable(void)
 {
-    // Подготовка шины SPI
+    // Подготовка тактирования и настройка шины SPI
     spi_preparing();
     // Включить SPI
     SPI1->CR1 |= SPI_CR1_SPE; 
@@ -37,6 +37,7 @@ void spi_disable(void)
 void spi_transmit(const uint8_t *data)
 {
     ASSERT_NULL_PTR(data);
+    
     // Запись в регистр данных
-    //SPI1->DR = *data;
+    //SPI1->DR = (*data);
 }
