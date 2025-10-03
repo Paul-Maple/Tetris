@@ -33,16 +33,17 @@ static void lcd_chain_cmd_tx( lcd_chain_cmd_t *chain)
     // Цикл, пока не дойдёт до команды завершения передачи цепочки
     for ( ; chain->cmd != LCD_CMD_NOP; chain++)
     {
-        // Установить вывод DCRS для отправки команды
+        // Установить вывод DCRS в "0" для отправки команды
         io_dcrs_set(LCD_CMD);
         
+        uint8_t cmd_buffer = chain->cmd;
         // Отправка команды
-        spi_transmit(&chain->cmd);
+        spi_transmit(&cmd_buffer);
         
         // Если команда имеет параметры
         if (chain->size > 0)
         {
-            // Установить вывод DCRS для отправки данных
+            // Установить вывод DCRS в "1" для отправки данных
             io_dcrs_set(LCD_DATA);
             
             // Буфер для данных
@@ -53,7 +54,8 @@ static void lcd_chain_cmd_tx( lcd_chain_cmd_t *chain)
                 spi_transmit(&buffer_data[i]);
         }
         // Если требуется задержка перед отправкой следующей команды
-        //if (chain->time != 0)
+        //if (chain->cmd == LCD_CMD_SOFT_RESET || chain->cmd == LCD_CMD_SLEEP_OUT)
+            // Надо сделать задержку 5 мс
     }
     
     // Отключить SPI
@@ -66,7 +68,7 @@ void lcd_init(void)
     io_led_on();
     
     // Массив элементов цепочки команд
-    static  lcd_chain_cmd_t lcd_chain_init[] =    
+    static lcd_chain_cmd_t lcd_chain_init[4] =    
     {
         // Инициализация команд
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET),              // Программный сброс
@@ -87,7 +89,7 @@ void lcd_image_set(const lcd_position_t *pos, const uint16_t color)
     lcd_chain_cmd_t color_set = LCD_CMD_INIT(color, LCD_CMD_MEMORY_SET);
     
     // Массив элементов цепочки команд
-     lcd_chain_cmd_t chain_image[] = 
+     lcd_chain_cmd_t chain_image[4] = 
     {
         collum_set,                             // Установить адреса начальной и конечной столбца
         line_set,                               // Установить адреса началного и конечного строки
