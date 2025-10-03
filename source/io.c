@@ -10,21 +10,21 @@ void io_init(void)
     /*** Порт А ***/
     IO_RESET();
         IO_NC(0);
-            IO_AF_PD(IO_LCD_SCL_PIN, 5);                                                // Пин тактирования SPI
+        IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
         IO_OUT_PD(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
         IO_OUT_PD(IO_LCD_DCRS_PIN);                                             // Пин выбора команды/данных
-            //IO_AF_PD(IO_LCD_CSX_PIN, 5);                                                // Пин выбора slave-устройства
+        IO_AF_PD(IO_LCD_CSX_PIN, 5);                                            // Пин выбора slave-устройства
         IO_NC(5);
         IO_NC(6);
-            IO_AF_PD(IO_LCD_SDA_PIN, 5);                                                // Пин для передачи данных
+        IO_AF_PD(IO_LCD_SDA_PIN, 5);                                            // Пин для передачи данных
         IO_NC(8);
         IO_NC(9);
         IO_NC(10);
         IO_NC(11);
         IO_NC(12);
-        IO_AF_PD(IO_JTMS_PIN, 0);                                               // Для отладки //
-        IO_AF_PD(IO_JTCK_PIN, 0);                                               // Для отладки //
-        IO_AF_PD(IO_JTDI_PIN, 0);                                               // Для отладки //
+        IO_AF_PD(IO_JTMS_PIN, 0);                                               // Для отладки 
+        IO_AF_PD(IO_JTCK_PIN, 0);                                               // Для отладки 
+        IO_AF_PD(IO_JTDI_PIN, 0);                                               // Для отладки
     IO_SAVE(A);
     
     /*** Порт B ***/
@@ -49,10 +49,10 @@ void io_init(void)
     
     /*** Порт C ***/
     IO_RESET();
-        IO_IN_PD(IO_BUTTON_0);                                                  // Кнопка //
-        IO_IN_PD(IO_BUTTON_1);                                                  // Кнопка //
-        IO_IN_PD(IO_BUTTON_2);                                                  // Кнопка //
-        IO_IN_PD(IO_BUTTON_3);                                                  // Кнопка //
+        IO_IN_PD(IO_BUTTON_0);                                                  // Кнопка 
+        IO_IN_PD(IO_BUTTON_1);                                                  // Кнопка 
+        IO_IN_PD(IO_BUTTON_2);                                                  // Кнопка 
+        IO_IN_PD(IO_BUTTON_3);                                                  // Кнопка 
         IO_NC(4);
         IO_NC(5);
         IO_NC(6);
