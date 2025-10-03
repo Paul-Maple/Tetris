@@ -11,7 +11,7 @@
 #include <lpm.h>
 #include "event.h"
 
-#include "test.h"
+//#include "test.h"
 
 __noreturn void main(void)
 {
@@ -24,8 +24,6 @@ __noreturn void main(void)
     lcd_init();
     led_init();
     lpm_init();
-    
-    test_init();
     
     // Главный цикл
     for(MCU_IQR_ENABLE();;)
