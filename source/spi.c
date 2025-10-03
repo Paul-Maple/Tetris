@@ -11,12 +11,10 @@ static void spi_preparing()
     /* Регистры CR1 и CR2 должны быть настроены перед включением SPI */
     // Настройка регистров SPI
     SPI1->CR1 = SPI_CR1_BR_0 |                  // Делитель частоты /4
-                SPI_CR1_MSTR |                  // Режим мастера                 
-                SPI_CR1_BIDIMODE |              // Simplex mode
-                SPI_CR1_BIDIOE;                 // Tx only
-    
+                SPI_CR1_MSTR;                   // Режим мастера                 
+
     SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |     // Передача по 8 бит
-                SPI_CR2_NSSP;
+                SPI_CR2_NSSP | SPI_CR2_SSOE;
 }
 
 void spi_enable(void)
