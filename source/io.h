@@ -136,13 +136,13 @@
         af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)  
             
         /*** Установка конфигурации пинов ***/
-// Non connected pin
-#define IO_NC(pin)                                                              \
+// Input, Pull-Down
+#define IO_IN_PD(pin)                                                              \
     IO_IN_MODE_SET(pin);                                                        \
     IO_PULL_DOWN_SET(pin)
 
-// Input, Pull-Down
-#define IO_IN_PD(pin)        IO_NC(pin)
+// Non connected pin
+#define IO_NC(pin)        IO_IN_PD(pin)
         
 // Output, Pull-Down
 #define IO_OUT_PD(pin)                                                          \
