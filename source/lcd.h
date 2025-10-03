@@ -1,7 +1,7 @@
 #ifndef __LCD_H
 #define __LCD_H
 
-#include <timer.h>
+#include <typedefs.h>
 
 // Перечисление команд управления дисплеем
 enum
@@ -36,19 +36,12 @@ enum
     LCD_CMD  = 0,    // Команда
     LCD_DATA = 1     // Данные
 };
-/*
-// Перечисление тиков таймера для задержки отправки команд
-enum
-{
-    LCD_TIC_RESET     = TIMER_TICKS_MS(5),
-    LCD_TIC_SLEEP_OUT = TIMER_TICKS_MS(5)
-};  */
 
 // Структура элемента цепочки команд
 typedef struct
 {
     // Указатель на данные
-    const void *data;
+    void *data;
     // Размер данных (в байтах)
     uint8_t size;
     // Команда
