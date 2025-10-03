@@ -54,8 +54,8 @@
 #define IO_LCD_SCL_PIN      1                                                   /*** SCL,   Port A ***/
 #define IO_LCD_SDA_PIN      7                                                   /*** SDA,   Port A ***/
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
+
 #define IO_LCD_DCRS_PIN     3                                                   /*** DC/RS, Port A ***/
-#define IO_LCD_MISO_PIN     6
 // TODO: Реализовать подсветку на ШИМе
 #define IO_LCD_LED_PIN      2                                                   /*** LED,   Port A ***/
 
@@ -133,8 +133,8 @@
         /*** Установка номера альтернативной функции ***/
 // Установка номера AF
 #define IO_AF_NUMBER_SET(pin, number)                                           \
-        af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)
-
+        af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)  
+            
         /*** Установка конфигурации пинов ***/
 // Non connected pin
 #define IO_NC(pin)                                                              \
@@ -153,7 +153,7 @@
 #define IO_OUT_PU(pin)                                                          \
     IO_OUT_MODE_SET(pin);                                                       \
     IO_PULL_UP_SET(pin)
-        
+
 // Alternate function, Pull-Down            
 #define IO_AF_PD(pin, number)                                                   \
     IO_AF_MODE_SET(pin);                                                        \
