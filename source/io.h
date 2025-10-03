@@ -137,7 +137,7 @@
             
         /*** Установка конфигурации пинов ***/
 // Input, Pull-Down
-#define IO_IN_PD(pin)                                                              \
+#define IO_IN_PD(pin)                                                           \
     IO_IN_MODE_SET(pin);                                                        \
     IO_PULL_DOWN_SET(pin)
 
