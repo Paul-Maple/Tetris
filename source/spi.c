@@ -3,18 +3,18 @@
 #include <nvic.h>
 
 // Подготовка SPI к передаче
-static void spi_preparing()
+static void spi_preparing(void)
 {
     // Включить тактирование SPI1
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
     
     /* Регистры CR1 и CR2 должны быть настроены перед включением SPI */
     // Настройка регистров SPI
-    SPI1->CR1 = SPI_CR1_BR_0 |                  // Делитель частоты /4
+    SPI1->CR1 = SPI_CR1_BR_0 | SPI_CR1_BR_2 |   // Делитель частоты /64
                 SPI_CR1_MSTR;                   // Режим мастера                 
 
     SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |     // Передача по 8 бит
-                SPI_CR2_NSSP | SPI_CR2_SSOE;
+                SPI_CR2_NSSP | SPI_CR2_SSOE;                     // NSS pulse and SS output enable
 }
 
 void spi_enable(void)
@@ -35,7 +35,7 @@ void spi_disable(void)
 
 void spi_transmit(const uint8_t *data)
 {
-    ASSERT_NULL_PTR(data);
+    //ASSERT_NULL_PTR(data);
     // Запись в регистр данных
     SPI1->DR = (*data);
 }
