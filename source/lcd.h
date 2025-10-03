@@ -47,12 +47,12 @@ enum
 // Структура элемента цепочки команд
 typedef struct
 {
-    // Команда
-    uint8_t cmd;
-    // Размер данных (в байтах)
-    uint8_t size;
     // Указатель на данные
     const void *data;
+    // Размер данных (в байтах)
+    uint8_t size;
+    // Команда
+    uint8_t cmd;
     
 } lcd_chain_cmd_t;
 
