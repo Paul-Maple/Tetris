@@ -6,7 +6,7 @@
 // Регистр MAC (Memory access control 8-ми битный)
 /* TODO: Записать в регистр необходимые значения бит
  * для настройки ориентации дисплея  */
-#define LCD_MAC_REG     ((uint8_t)(LCD_MAC_D1 | LCD_MAC_D1))
+#define LCD_MAC_REG     ((uint8_t)(LCD_MAC_D1 | LCD_MAC_D1))    // = 0b00000000
 
 // Статическая инициализация элемента цепочки команд
 #define LCD_CMD_STATIC_INIT(_data, _size, _cmd)                                 \
@@ -60,14 +60,15 @@ void lcd_init(void)
 {
     // Включить подсветку дисплея
     io_led_on();
-    
+    static const uint8_t pixel_format = 0x55;  // 16-bit RGB565
     // Массив элементов цепочки команд
-    static const lcd_chain_cmd_t chain_init[5] =    
+    static const lcd_chain_cmd_t chain_init[] =    
     {
         // Инициализация команд
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET),   // Программный сброс
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT),    // Выход из режима энергосбережения
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON),   // Включить дисплей
+        LCD_CMD_INIT(&pixel_format, LCD_PIXEL_FORMAT_SET),      // Формат пикселя (16-bit)
         LCD_CMD_INIT(LCD_MAC_REG, LCD_CMD_MAC_SET),         // Memory Access Control set
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_NOP)           // Команда завершения цепочки команд
     };
