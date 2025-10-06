@@ -20,7 +20,7 @@ typedef uint32_t timer_interval_t;
 // Статическая инициализация таймера
 #define TIMER_STATIC_INIT(_mode, cb)                                            \
 {                                                                               \
-    LIST_ITEM_STATIC_INIT,                                                      \
+    LIST_ITEM_STATIC_INIT(),                                                    \
     .init.mode = _mode,                                                         \
     .init.handler = cb,                                                         \
     .data.reload = 0,                                                           \
