@@ -1,7 +1,8 @@
 #ifndef __LCD_H
 #define __LCD_H
 
-#include <typedefs.h>
+//#include <typedefs.h>
+#include <timer.h>
 
 // Перечисление команд управления дисплеем
 enum
@@ -17,10 +18,10 @@ enum
     LCD_CMD_MEMORY_SET      = 0x2C,     // Передача данных от МК до кадровой памяти
     LCD_PIXEL_FORMAT_SET    = 0x3A,     // Установка формата RGB
     LCD_GAMMA_SET           = 0x26,     // Установка гаммы
-    LCD_CMD_COLOR_SET       = 0x2D,     // Установка цвета
+    LCD_CMD_COLOR_SET       = 0x2D,     // Преобразование цветовой глубины с 16 бит в 18 бит
     
     LCD_CMD_NOP             = 0x00      // Пустая команда (Для завершения передачи)
-    // TODO: Добавить необходимые команды
+    // TODO: Добавить необходимые команды, лишние убрать
 };
 
 // Перечисление цветов (Формат: 16 бит)
@@ -28,6 +29,13 @@ enum
 {
     LCD_COLOR_RED = 0xF800, 
     // TODO: Дописать цвета
+};
+
+// Перечисление тиков таймера для задержки отправки команд
+enum
+{
+    LCD_TIME_DELAY_5MS   = TIMER_TICKS_MS(5),
+    LCD_TIME_DELAY_120MS = TIMER_TICKS_MS(120)
 };
 
 // Перечисление состояний пина DCRS 
@@ -40,6 +48,8 @@ enum
 // Структура элемента цепочки команд
 typedef struct
 {
+    // Элемент списка 
+    list_item_t item;
     // Указатель на данные
     void *data;
     // Размер данных (в байтах)
