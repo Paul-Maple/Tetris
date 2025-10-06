@@ -4,7 +4,7 @@
 #include <typedefs.h>
 
 // Статическая инициализация элемента списка
-#define LIST_ITEM_STATIC_INIT                                                   \
+#define LIST_ITEM_STATIC_INIT()                                                 \
 {                                                                               \
     .next = NULL,                                                               \
     .prev = NULL                                                                \
