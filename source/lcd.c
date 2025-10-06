@@ -3,14 +3,10 @@
 #include "spi.h"
 #include "io.h"
 
-// Регистр MAC (Memory access control 8-ми битный)
-/* TODO: Записать в регистр необходимые значения бит
- * для настройки ориентации дисплея  */
-#define LCD_MAC_REG     ((uint8_t)(LCD_MAC_D1 | LCD_MAC_D1))    // = 0b00000000
-
 // Статическая инициализация элемента цепочки команд
 #define LCD_CMD_STATIC_INIT(_data, _size, _cmd)                                 \
 {                                                                               \
+    .item = LIST_ITEM_STATIC_INIT(),                                            \
     .data = _data,                                                              \
     .size = _size,                                                              \
     .cmd  = _cmd                                                                \
@@ -20,11 +16,25 @@
 #define LCD_CMD_INIT(data, cmd)                                                 \
     LCD_CMD_STATIC_INIT((void*)(data), sizeof(data), cmd)
 
+// Формат пикселя 5 + 6 + 5 bit RGB
+static const uint8_t lcd_pixel_format = 0b01010101;
+// Memory Access Control register
+static const uint8_t lcd_mac_reg = 0b00000000;
+
+// Список команд для отправки
+list_t lcd_cmd_list;
+
+// Предварительное объявление callback функции таймера
+static void lcd_delay_cmd_tx(timer_t *timer);
+
+// Таймер для задержки отправки команд
+static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_delay_cmd_tx);
+
 // Отправка цепочки команд по SPI
 static void lcd_chain_cmd_tx(const lcd_chain_cmd_t *chain)
 {
     ASSERT_NULL_PTR(chain);
-
+    
     // Включить SPI
     spi_enable();
     
@@ -50,45 +60,48 @@ static void lcd_chain_cmd_tx(const lcd_chain_cmd_t *chain)
                 // Передача
                 spi_transmit(&buffer_data[i]);
         }
+        // Если команды с задержкой
+        /*if (chain->cmd == LCD_CMD_SOFT_RESET || chain->cmd == LCD_CMD_SLEEP_OUT)
+        {
+            timer_start(&lcd_delay_cmd_timer, LCD_TIME_DELAY_5MS);
+            // Конец передачи текущей цепочки команд
+            break;
+        }*/
     }
     
     // Отключить SPI
     spi_disable();
 }
 
+
+// Отправка команд после задержки
+/* Вызывается, когда отработает таймер для задержки отправки команд */
+static void lcd_delay_cmd_tx(timer_t *timer)
+{
+    //lcd_chain_cmd_tx();
+}
+
 void lcd_init(void)
 {
     // Включить подсветку дисплея
     io_led_on();
-    static const uint8_t pixel_format = 0x55;  // 16-bit RGB565
-    // Массив элементов цепочки команд
+    
+    // Массив элементов цепочки команд для инициализации
     static const lcd_chain_cmd_t chain_init[] =    
     {
         // Инициализация команд
-        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET),   // Программный сброс
-        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT),    // Выход из режима энергосбережения
-        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON),   // Включить дисплей
-        LCD_CMD_INIT(&pixel_format, LCD_PIXEL_FORMAT_SET),      // Формат пикселя (16-bit)
-        LCD_CMD_INIT(LCD_MAC_REG, LCD_CMD_MAC_SET),         // Memory Access Control set
-        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_NOP)           // Команда завершения цепочки команд
-    };
-    
-    // Передача цепочки команд
-    lcd_chain_cmd_tx(chain_init); 
-    
-    // Красный пиксель посередине экрана
-    lcd_position_t position = 
-    {
-        .x[0] = 120,
-        .x[1] = 120,
-        .y[0] = 160,
-        .y[1] = 160
-    };
-    
-    lcd_image_set(&position, LCD_COLOR_RED);
-}
+        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET),       // Программный сброс
+        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT),        // Выход из режима энергосбережения
+        LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON),       // Включить дисплей
+        LCD_CMD_INIT(&lcd_pixel_format, LCD_PIXEL_FORMAT_SET),  // Формат пикселя (16-bit)
+        LCD_CMD_INIT(&lcd_mac_reg, LCD_CMD_MAC_SET),            // Memory Access Control (default state)
 
-// Передача изображения
+    };
+
+    // Передача
+    lcd_chain_cmd_tx(chain_init);
+}
+/*
 void lcd_image_set(const lcd_position_t *position, const uint16_t color)
 {
     // Массив элементов цепочки команд
@@ -96,10 +109,10 @@ void lcd_image_set(const lcd_position_t *position, const uint16_t color)
     {
         LCD_CMD_INIT(position->x, LCD_CMD_COLLUM_SET),  // Установить адреса начальной и конечной столбца
         LCD_CMD_INIT(position->y, LCD_CMD_LINE_SET),    // Установить адреса началного и конечного строки
-        LCD_CMD_INIT(color, LCD_CMD_MEMORY_SET),        // Запись цвета
+        LCD_CMD_INIT(color, LCD_CMD_MEMORY_SET),        // Команда записи цвета
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_NOP)       // Команда завершения цепочки команд        
     };
     
     // Передача
     lcd_chain_cmd_tx(chain_image);  
-}
+} */
