@@ -99,9 +99,9 @@ void lcd_init(void)
     };
     
     // Добавление команд в список
-    list_insert(&lcd_cmd_list, &chain_init[1].item);
-        
-    
+    for (uint8_t i = 0; i < 5; i++)
+        list_insert(&lcd_cmd_list, &chain_init[i].item);
+
     // Передача
     lcd_chain_cmd_tx(chain_init);
 }
