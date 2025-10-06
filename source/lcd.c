@@ -87,7 +87,7 @@ void lcd_init(void)
     io_led_on();
     
     // Массив элементов цепочки команд для инициализации
-    static const lcd_chain_cmd_t chain_init[] =    
+    static lcd_chain_cmd_t chain_init[] =    
     {
         // Инициализация команд
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET),       // Программный сброс
@@ -97,7 +97,11 @@ void lcd_init(void)
         LCD_CMD_INIT(&lcd_mac_reg, LCD_CMD_MAC_SET),            // Memory Access Control (default state)
 
     };
-
+    
+    // Добавление команд в список
+    list_insert(&lcd_cmd_list, &chain_init[1].item);
+        
+    
     // Передача
     lcd_chain_cmd_tx(chain_init);
 }
