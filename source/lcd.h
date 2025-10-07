@@ -10,9 +10,9 @@ enum
     LCD_CMD_SOFT_RESET      = 0x01,     // Программный сброс
     LCD_CMD_SLEEP_OUT       = 0x11,     // Выход из режима сна       
     LCD_CMD_NORMAL_MODE     = 0x13,     // Нормальный режим отображения
-    LCD_CMD_MAC_SET         = 0x36,     // Настройка доступа к памяти
     LCD_CMD_DISPLAY_ON      = 0x29,     // Включение дисплея
     LCD_CMD_DISPLAY_OFF     = 0x28,     // Выключение дисплея
+    LCD_CMD_MAC_SET         = 0x36,     // Настройка доступа к памяти
     LCD_CMD_COLLUM_SET      = 0x2A,     // Установка адреса столбца
     LCD_CMD_LINE_SET        = 0x2B,     // Установка адреса строки    
     LCD_CMD_MEMORY_SET      = 0x2C,     // Передача данных от МК до кадровой памяти
@@ -48,8 +48,6 @@ enum
 // Структура элемента цепочки команд
 typedef struct
 {
-    // Элемент списка 
-    list_item_t item;
     // Указатель на данные
     void *data;
     // Размер данных (в байтах)
