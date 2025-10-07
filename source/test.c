@@ -3,7 +3,7 @@
 
 void test_init(void)
 {
-    /*
+    
     // Красный пиксель посередине экрана
     lcd_position_t position = 
     {
@@ -14,5 +14,4 @@ void test_init(void)
     };
     
     lcd_image_set(&position, LCD_COLOR_RED); 
-    */
 }
