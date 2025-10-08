@@ -137,4 +137,4 @@ void lcd_image_set(const lcd_position_t *position, const uint16_t color)
     
     // Передача
     lcd_chain_cmd_tx(chain_image);
-}   
+}
