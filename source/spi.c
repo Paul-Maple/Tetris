@@ -45,5 +45,5 @@ void spi_transmit(const uint8_t *data)
     SPI1->DR = (*data);
     
     // Ожидание окончания передачи (Не обязательно, наверное)
-    //while(SPI1->SR & SPI_SR_BSY);
+    while(SPI1->SR & SPI_SR_BSY);
 }
