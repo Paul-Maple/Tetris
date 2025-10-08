@@ -10,11 +10,12 @@ static void spi_preparing(void)
     
     /* Регистры CR1 и CR2 должны быть настроены перед включением SPI */
     // Настройка регистров SPI
-    SPI1->CR1 = SPI_CR1_BR_0 |   // Делитель частоты на 4
-                SPI_CR1_MSTR;    // Режим мастера                 
-
-    SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |   // Передача по 8 бит
-                SPI_CR2_NSSP | SPI_CR2_SSOE;                   // NSS pulse and SS output enable
+    SPI1->CR1 = SPI_CR1_BR_0 | SPI_CR1_BR_1 |    // Делитель частоты на 128
+                SPI_CR1_MSTR;                    // Режим мастера                 
+    
+    SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |    // Передача по 8 бит
+                SPI_CR2_SSOE |                                  // Вывод NSS управляется аппаратно
+                SPI_CR2_NSSP;                                   // Вывод NSS "1" между передачами 
 }
 
 void spi_enable(void)
@@ -28,7 +29,7 @@ void spi_enable(void)
 
 void spi_disable(void)
 {
-    // Отключение spi и его тактирования
+    // Отключение шины SPI и тактирования SPI
     SPI1->CR1 &= ~SPI_CR1_SPE;
     RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
 }
@@ -36,6 +37,13 @@ void spi_disable(void)
 void spi_transmit(const uint8_t *data)
 {
     ASSERT_NULL_PTR(data);
+    
+    // Ожидание освобождения буфера передатчика
+    while(!(SPI1->SR & SPI_SR_TXE));
+    
     // Запись в регистр данных
     SPI1->DR = (*data);
+    
+    // Ожидание окончания передачи (Не обязательно, наверное)
+    //while(SPI1->SR & SPI_SR_BSY);
 }
