@@ -101,10 +101,8 @@
 #define IO_INPUT_MODE_MASK      (0x0)                                           /*** Mode 00 ***/
 #define IO_OUTPUT_MODE_MASK     (0x1)                                           /*** Mode 01 ***/
 #define IO_ALTERNATE_MODE_MASK  (0x2)                                           /*** Mode 10 ***/
-//#define IO_ANALOG_MODE_MASK   (0x3)                                           /*** Mode 11 ***/
 
 // Режимы подтяжки выводов
-#define IO_NO_PULL_MASK         (0x0)                                           /*** Mode 00 ***/
 #define IO_PULL_UP_MASK         (0x1)                                           /*** Mode 01 ***/
 #define IO_PULL_DOWN_MASK       (0x2)                                           /*** Mode 10 ***/           
 
@@ -133,17 +131,17 @@
         /*** Установка номера альтернативной функции ***/
 // Установка номера AF
 #define IO_AF_NUMBER_SET(pin, number)                                           \
-        af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)  
+    af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)
             
-        /*** Установка конфигурации пинов ***/
+        /*** Установка итоговой конфигурации пинов ***/
+// Non connected pin
+#define IO_NC(pin)        IO_IN_PD(pin)
+        
 // Input, Pull-Down
 #define IO_IN_PD(pin)                                                           \
     IO_IN_MODE_SET(pin);                                                        \
     IO_PULL_DOWN_SET(pin)
 
-// Non connected pin
-#define IO_NC(pin)        IO_IN_PD(pin)
-        
 // Output, Pull-Down
 #define IO_OUT_PD(pin)                                                          \
     IO_OUT_MODE_SET(pin);                                                       \
