@@ -3,9 +3,8 @@
 
 void test_init(void)
 {
-    
     // Красный пиксель посередине экрана
-    lcd_position_t position = 
+    const lcd_position_t position = 
     {
         .x[0] = 120,
         .x[1] = 121,
