@@ -2,12 +2,22 @@
 #define __BUTTON_H
 
 #include <timer.h>
+#include <event.h>
+
+/* Для каждой кнопки предусмотре свой таймер, для программного  *
+ * устранения дребезга контактов                                */
 
 // Структура кнопки
 typedef struct
 {
-    timer_t timer;      // Таймер
-    bool pressed;       // Флаг нажатия кнопки
+    // Таймер (ПЕРВЫМ В СТРУКТУРЕ !!!!)
+    timer_t timer;
+    // Флаг нажатия кнопки    
+    bool pressed;
+    // Событие по нажатию кнопки
+    event_t event;
+    // Событие по отпусканию кнопки
+    //event_t event_released;
     
 } button_t;
 
