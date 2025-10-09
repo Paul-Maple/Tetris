@@ -15,19 +15,20 @@
 #define BUTTON_CONTACT_BOUNCE_TIME      TIMER_TICKS_MS(10)
 
 // Статическая инициализация кнопки
-#define BUTTON_STATIC_INIT(mode, timer_cb, event_cb)                            \
+#define BUTTON_STATIC_INIT(mode, timer_cb, pressed_event_cb)                    \
 {                                                                               \
     TIMER_STATIC_INIT(mode, timer_cb),                                          \
     .pressed = false,                                                           \
-    EVENT_STATIC_INIT(event_cb)                                                 \
+    EVENT_STATIC_INIT(pressed_event_cb)                                         \
+    /* EVENT_STATIC_INIT(released_event_cb) */                                  \
 }
 
 // Функция для теста кнопок (уже не работает, функция пустая)
 extern void test_func(void);
 
-    /*** Обработчик события нажатия кнопки ***/
-/* Вызываются как callback у таймера в случае,  *
- * если таймер дребезга контактов отработал     */
+// Обработчик события нажатия кнопки
+/* Вызываются как callback у таймера в случае, *
+ * если таймер дребезга контактов отработал    */
 static void button_pressed_event_cb(timer_t *timer)
 {
     ASSERT_NULL_PTR(timer);
@@ -42,7 +43,7 @@ static void button_pressed_event_cb(timer_t *timer)
         button->pressed = true; 
         
         // Вызов события по нажатию кнопки
-        event_raise(&button->event);
+        event_raise(&button->pressed_event);
         return;
     }
     
@@ -53,7 +54,7 @@ static void button_pressed_event_cb(timer_t *timer)
         button->pressed = false;
         
         // Вызов события по отпусканию кнопки
-        //event_raise(&test_event);
+        //event_raise(&button->released_event);
     }
 }
 
