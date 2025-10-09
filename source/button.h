@@ -15,9 +15,9 @@ typedef struct
     // Флаг нажатия кнопки    
     bool pressed;
     // Событие по нажатию кнопки
-    event_t event;
+    event_t pressed_event;
     // Событие по отпусканию кнопки
-    //event_t event_released;
+    //event_t released_event;
     
 } button_t;
 
