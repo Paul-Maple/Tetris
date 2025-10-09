@@ -4,9 +4,9 @@
 #include <list.h>
 
 // 
-#define EVENT_STATIC_INIT(_item, _cb)                                           \
+#define EVENT_STATIC_INIT(_cb)                                                  \
 {                                                                               \
-    .item = _item,                                                              \
+    LIST_ITEM_STATIC_INIT(),                                                    \
     .cb   = _cb                                                                 \
 }
 
