@@ -1,6 +1,5 @@
 #include "button.h"
 #include <nvic.h>
-#include <event.h>
 
 // Настройка регистра SYSCFG для выбора порта внешних прерываний
 #define BUTTON_EXTI0_PORTC      (SYSCFG_EXTICR1_EXTI0 & SYSCFG_EXTICR1_EXTI0_PC)
@@ -16,19 +15,24 @@
 #define BUTTON_CONTACT_BOUNCE_TIME      TIMER_TICKS_MS(10)
 
 // Статическая инициализация кнопки
-#define BUTTON_STATIC_INIT(mode, cb)                                            \
+#define BUTTON_STATIC_INIT(mode, timer_cb, event_cb)                            \
 {                                                                               \
-    TIMER_STATIC_INIT(mode, cb),                                                \
-    .pressed = false                                                            \
+    TIMER_STATIC_INIT(mode, timer_cb),                                          \
+    .pressed = false,                                                           \
+    EVENT_STATIC_INIT(event_cb)                                                 \
 }
 
-    /*** Обработчики события нажатия кнопки ***/
+// Функция для теста кнопок (уже не работает, функция пустая)
+extern void test_func(void);
+
+    /*** Обработчик события нажатия кнопки ***/
 /* Вызываются как callback у таймера в случае,  *
  * если таймер дребезга контактов отработал     */
-static void button_0_pressed_event_cb(timer_t *timer)
+static void button_pressed_event_cb(timer_t *timer)
 {
     ASSERT_NULL_PTR(timer);
     
+    // Получить указатель на нажатую кнопку
     button_t *button = (button_t *)timer;
     
     // Если кнопка была не в нажатом состоянии
@@ -37,44 +41,31 @@ static void button_0_pressed_event_cb(timer_t *timer)
         // Установка флага нажатия кнопки
         button->pressed = true; 
         
-        // TODO: Добавить события по нажатию кнопки
-        //event_raise(&test_event);
+        // Вызов события по нажатию кнопки
+        event_raise(&button->event);
+        return;
     }
     
     // Кнопка была в нажатом состоянии
     else
     {
+        // Установка флага: кнопка не нажата
         button->pressed = false;
+        
+        // Вызов события по отпусканию кнопки
         //event_raise(&test_event);
     }
-        
-}
-
-static void button_1_pressed_event_cb(timer_t *timer)
-{
-    
-}
-
-static void button_2_pressed_event_cb(timer_t *timer)
-{
-    
-}
-
-static void button_3_pressed_event_cb(timer_t *timer)
-{
-    
 }
 
 // Кнопки
-button_t button_0 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_0_pressed_event_cb);
-button_t button_1 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_1_pressed_event_cb);
-button_t button_2 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_2_pressed_event_cb);
-button_t button_3 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_3_pressed_event_cb);
+button_t button_0 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb, test_func);
+//button_t button_1 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
+//button_t button_2 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
+//button_t button_3 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
 
 void button_init(void)
 {
-    /* Настройка прерываний кнопок */
-    
+        /*** Настройка прерываний кнопок ***/
     // Запрос на прерывание с линий EXTI 0, 1, 2, 4
     EXTI->IMR1 |= EXTI_IMR1_IM0 | EXTI_IMR1_IM1 | EXTI_IMR1_IM2 | EXTI_IMR1_IM3;
     
@@ -85,7 +76,7 @@ void button_init(void)
     
     // Прерывания на пинах 0, 1, 2, 3 порта С
     SYSCFG->EXTICR[0] = BUTTON_EXTI0_PORTC | BUTTON_EXTI1_PORTC | BUTTON_EXTI2_PORTC| BUTTON_EXTI3_PORTC;
-        
+    
     // Включить перывания в NVIC
     nvic_irq_enable(EXTI0_IRQn);
     nvic_irq_enable(EXTI1_IRQn);
