@@ -14,3 +14,8 @@ void test_init(void)
     
     lcd_image_set(&position, LCD_COLOR_RED); 
 }
+
+void test_func(void)
+{
+    
+}
