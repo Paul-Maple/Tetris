@@ -3,7 +3,7 @@
 
 #include <list.h>
 
-// 
+// Статическая инициализация события
 #define EVENT_STATIC_INIT(_cb)                                                  \
 {                                                                               \
     LIST_ITEM_STATIC_INIT(),                                                    \
