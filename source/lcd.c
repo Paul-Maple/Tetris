@@ -26,8 +26,7 @@
 #define LCD_CMD_GAMMA_SET           0x26         // Установка гаммы
 #define LCD_CMD_COLOR_SET           0x2D         // Преобразование цветовой глубины с 16 бит в 18 бит
 #define LCD_CMD_NOP                 0x00         // Пустая команда (Для завершения передачи)
-// TODO: Добавить необходимые команды, 
-// а лишние убрать
+// TODO: Добавить необходимые команды, а лишние убрать
 
 // Статическая инициализация элемента цепочки команд
 #define LCD_CMD_STATIC_INIT(_data, _size, _cmd)                                 \
@@ -39,7 +38,7 @@
 
 //  Инициализация элемента цепочки команд
 #define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT((void*)(data), sizeof(data), cmd)
-   
+
 // Формат пикселя 5 + 6 + 5 bit RGB
 static const uint8_t lcd_pixel_format = 0b01010101;
 // Memory Access Control register
