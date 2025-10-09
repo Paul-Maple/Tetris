@@ -50,7 +50,7 @@
 // Cветодиод для теста
 #define IO_LED_PIN      13
 
-// Пины LCD
+// Пины LCD (Режим AF5)
 #define IO_LCD_SCL_PIN      1                                                   /*** SCL,   Port A ***/
 #define IO_LCD_SDA_PIN      7                                                   /*** SDA,   Port A ***/
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
@@ -61,8 +61,8 @@
 
 // Пины для отладки (Режим AF0)
 #define IO_JTMS_PIN     13                                                      /*** JTAG pin ***/
-#define IO_JTCK_PIN     14                                                      /*** JTAG pin ***/  
-#define IO_JTDI_PIN     15                                                      /*** JTAG pin ***/ 
+#define IO_JTCK_PIN     14                                                      /*** JTAG pin ***/
+#define IO_JTDI_PIN     15                                                      /*** JTAG pin ***/
 
 // Пины кнопок (Все порт С)
 #define IO_BUTTON_0     0                                                       /***  ***/
