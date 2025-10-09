@@ -15,7 +15,7 @@ static void spi_preparing(void)
     
     SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |    // Передача по 8 бит
                 SPI_CR2_SSOE |                                  // Вывод NSS управляется аппаратно
-                SPI_CR2_NSSP;                                   // Вывод NSS "1" между передачами 
+                SPI_CR2_NSSP;                                   // Вывод NSS "1" между передачами
 }
 
 void spi_enable(void)
