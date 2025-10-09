@@ -93,6 +93,7 @@ void button_init(void)
     nvic_irq_enable(EXTI3_IRQn);
 }
 
+    /*** Обработчики прерываний ***/
 void button_0_iqr(void)
 {
     // Сбросить флаг прерывания
