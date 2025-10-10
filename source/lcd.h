@@ -3,7 +3,7 @@
 
 #include <typedefs.h>
 
-// Структура элемента цепочки команд
+// Структура команды
 typedef struct
 {
     // Указатель на данные
@@ -13,7 +13,7 @@ typedef struct
     // Команда
     uint8_t cmd;
     
-} lcd_chain_cmd_t;
+} lcd_cmd_t;
 
 // Перечисление цветов (Формат: 16 бит)
 enum
