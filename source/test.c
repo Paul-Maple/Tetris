@@ -12,7 +12,7 @@ void test_init(void)
         .y[1] = 161
     };
     
-    lcd_image_set(&position, LCD_COLOR_RED); 
+    lcd_image_set(&position, LCD_COLOR_BLACK); 
 }
 
 void test_func(void)
