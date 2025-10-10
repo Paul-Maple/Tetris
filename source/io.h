@@ -28,16 +28,16 @@
 
 /*------------------------------------------------------------------------------*
  *      Пины для LCD:                                                           *
- *  В режиме Alternate function (AF5):                                          *
+ *      В режиме Alternate function (AF5):                                      *
  *  SCL (CLK)  -  Serial Clock Line (Тактирование)                              *
  *  SDA (MOSI) -  Serial Data (Данные по 8 бит)                                 *
  *  CSX (NSS)  -  Chip Select (Входа разрешения, активен при "0")               *
- *  В режиме OUT:                                                               *
+ *      В режиме OUT:                                                           *
  *  DCRS  -  Data/Command Register Select (Данные - "1" / Команды - "0")        *
- *  LED   -  Подсветка (Регулируется ШИМ)                                       *
+ *  LED   -  Подсветка дисплея                                                  *
  * ---------------------------------------------------------------------------- *
  *      Пины для отладки:                                                       *
- * Работают в режиме альтернативной функции (AF0)                               *
+ *      В режиме альтернативной функции (AF0)                                   *
  * JTMS - JTAG Mode Select                                                      *
  * JTCK - JTAG Test Clock                                                       *
  * JTDI - JTAG Data In                                                          *
@@ -157,6 +157,12 @@
     IO_AF_MODE_SET(pin);                                                        \
     IO_AF_NUMBER_SET(pin, number);                                              \
     IO_PULL_DOWN_SET(pin)
+        
+// Alternate function, Pull-Up          
+#define IO_AF_PU(pin, number)                                                   \
+    IO_AF_MODE_SET(pin);                                                        \
+    IO_AF_NUMBER_SET(pin, number);                                              \
+    IO_PULL_UP_SET(pin)
 
 // Инициализация GPIO
 void io_init(void);
