@@ -10,8 +10,9 @@ static void spi_preparing(void)
     
     /* Регистры CR1 и CR2 должны быть настроены перед включением SPI */
     // Настройка регистров SPI
-    SPI1->CR1 = SPI_CR1_BR_0 | SPI_CR1_BR_1 |    // Делитель частоты на 128
-                SPI_CR1_MSTR;                    // Режим мастера                 
+    SPI1->CR1 = SPI_CR1_BR_0 |                   // Делитель частоты на 4
+                SPI_CR1_MSTR |                   // Режим мастера                 
+                SPI_CR1_LSBFIRST;                // Формат LSB
     
     SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |    // Передача по 8 бит
                 SPI_CR2_SSOE |                                  // Вывод NSS управляется аппаратно
@@ -39,14 +40,11 @@ void spi_transmit(const uint8_t *data)
     ASSERT_NULL_PTR(data);
     
     // Ожидание освобождения буфера передатчика
-    while(!(SPI1->SR & SPI_SR_TXE));
-    
-    // Тестовое чтение буффера Rx, что бы буффер Rx не переполнялся
-    uint8_t buff = SPI1->DR;
+    while (!(SPI1->SR & SPI_SR_TXE));
     
     // Запись в регистр данных
     SPI1->DR = (*data);
     
     // Ожидание окончания передачи
-    while(SPI1->SR & SPI_SR_BSY);
+    while (SPI1->SR & SPI_SR_BSY);
 }
