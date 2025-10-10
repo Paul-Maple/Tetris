@@ -55,6 +55,7 @@
 #define IO_LCD_SDA_PIN      7                                                   /*** SDA,   Port A ***/
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
 
+#define IO_LCD_RESET_PIN    0                                                   /*** Reset, Port A ***/
 #define IO_LCD_DCRS_PIN     3                                                   /*** DC/RS, Port A ***/
 // TODO: Реализовать подсветку на ШИМе
 #define IO_LCD_LED_PIN      2                                                   /*** LED,   Port A ***/
@@ -136,7 +137,7 @@
         /*** Установка итоговой конфигурации пинов ***/
 // Non connected pin
 #define IO_NC(pin)        IO_IN_PD(pin)
-        
+
 // Input, Pull-Down
 #define IO_IN_PD(pin)                                                           \
     IO_IN_MODE_SET(pin);                                                        \
@@ -166,6 +167,9 @@
 
 // Инициализация GPIO
 void io_init(void);
+
+// Аппаратный сброс дисплея
+void io_reset_display(void);
 
 // Установка состояния пина DCRS
 void io_dcrs_set(bool state);
