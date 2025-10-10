@@ -7,7 +7,7 @@
 typedef struct
 {
     // Указатель на данные
-    void *data;
+    const void *data;
     // Размер данных (В байтах)
     uint8_t size;
     // Команда
@@ -18,7 +18,8 @@ typedef struct
 // Перечисление цветов (Формат: 16 бит)
 enum
 {
-    LCD_COLOR_RED = 0xF800, 
+    LCD_COLOR_BLACK = 0x0000,
+    LCD_COLOR_RED   = 0xF800,
     // TODO: Дописать цвета
 };
 
