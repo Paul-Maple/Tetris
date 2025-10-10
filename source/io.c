@@ -9,7 +9,7 @@ void io_init(void)
     
     /*** Порт А ***/
     IO_RESET();
-        IO_OUT_PD(IO_LCD_RESET_PIN);                                            // Пин аппаратного сброса
+        IO_NC(0);                                             
         IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
         IO_OUT_PD(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
         IO_OUT_PD(IO_LCD_DCRS_PIN);                                             // Пин выбора команды/данных
@@ -73,11 +73,6 @@ void io_init(void)
         IO_NC(1);
         IO_NC(3);
     IO_SAVE(H);
-}
-
-void io_reset_display(void)
-{
-    GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESET_PIN);
 }
 
 void io_dcrs_set(bool state)
