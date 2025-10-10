@@ -9,8 +9,8 @@
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
 
 // Состояния пина DCRS 
-#define LCD_CMD         0    // Команда
-#define LCD_DATA        1    // Данные
+#define LCD_DCRS_DATA        1    // Данные
+#define LCD_DCRS_CMD         0    // Команда
 
 // Команды для управления дисплеем
 #define LCD_CMD_SOFT_RESET          0x01         // Программный сброс
@@ -37,22 +37,21 @@
 }
 
 //  Инициализация элемента цепочки команд
-#define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT((void*)(data), sizeof(data), cmd)
+#define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT(&(data), sizeof(data), cmd)
 
 // Формат пикселя 5 + 6 + 5 bit RGB
 static const uint8_t lcd_pixel_format = 0b01010101;
 // Memory Access Control register
-//static const uint8_t lcd_mac_reg = 0b00000000;
-
+static const uint8_t lcd_mac_reg = LCD_MAC_BGR;
+/*
 // Предварительное объявление функции отправки команд после задержки
 static void lcd_delay_cmd_tx(timer_t * timer);
-
 // Таймер для задержки отправки команд
 static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_delay_cmd_tx);
-
+*/
 // Отправка цепочки команд по SPI
 static void lcd_chain_cmd_tx(const lcd_chain_cmd_t *chain)
-{           
+{
     ASSERT_NULL_PTR(chain);
     
     // Включить SPI
@@ -62,60 +61,62 @@ static void lcd_chain_cmd_tx(const lcd_chain_cmd_t *chain)
     for ( ; chain->cmd != LCD_CMD_NOP; chain++)
     {
         // Установить вывод DCRS в "0" для отправки команды
-        io_dcrs_set(LCD_CMD);
+        io_dcrs_set(LCD_DCRS_CMD);
         
+        const uint8_t *buffer_cmd = &chain->cmd;
         // Отправка команды
-        spi_transmit(&chain->cmd);
+        spi_transmit(buffer_cmd);
         
         // Если команда имеет параметры
         if (chain->size > 0)
         {
             // Установить вывод DCRS в "1" для отправки данных
-            io_dcrs_set(LCD_DATA);
+            io_dcrs_set(LCD_DCRS_DATA);
             
-            // Буфер для данных 
-            uint8_t *buffer_data = (uint8_t *)chain->data;
-            
-            // Запись данных в буфер для отправки (MSB)
+            // Запись данных в буфер для отправки ( Big-Endian + LSB )
             for (uint8_t i = 0; i < chain->size; i++)
+            {
+                // Буфер для данных 
+                const uint8_t *buffer_data = (uint8_t *)chain->data + i;
                 // Передача
-                spi_transmit(&buffer_data[i]);
+                spi_transmit(buffer_data);
+            }
         }
-        
-        // Если команды с задержкой
+        /*
+        // Если нужна задержка после отправки команды
         if (chain->cmd == LCD_CMD_SOFT_RESET || chain->cmd == LCD_CMD_SLEEP_OUT)
         {
-            // Задержка нужна
-            //timer_start(&lcd_delay_cmd_timer, LCD_TIME_DELAY_5MS);
-            //break;
-        }
+            // Запуск таймера
+            timer_start(&lcd_delay_cmd_timer, LCD_TIME_DELAY_5MS);
+            break;
+        }   */
     }
     
     // Отключить SPI
     spi_disable();
 }
-
+/*
 // Отправка команд после задержки
-/* Вызывается как callback у сработавшего таймера задержки */
+// Вызывается как callback у сработавшего таймера задержки 
 static void lcd_delay_cmd_tx(timer_t * timer)
 {
     //lcd_chain_cmd_tx();
 }
-
+*/
 void lcd_init(void)
 {
     // Включить подсветку дисплея
     io_led_on();
     
     // Статический массив элементов цепочки команд для инициализации
-    const lcd_chain_cmd_t chain_init[] = 
+    const lcd_chain_cmd_t chain_init[6] = 
     {
         // Инициализация команд
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET),           // Программный сброс
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT),            // Выход из режима сна
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON),           // Включить дисплей
-        LCD_CMD_INIT(&lcd_pixel_format, LCD_CMD_PIXEL_FORMAT_SET),  // Формат пикселя (16-bit)
-        //LCD_CMD_INIT(&lcd_mac_reg, LCD_CMD_MAC_SET),              // Memory Access Control (default state)
+        LCD_CMD_INIT(lcd_pixel_format, LCD_CMD_PIXEL_FORMAT_SET),   // Формат пикселя (16-bit)
+        LCD_CMD_INIT(lcd_mac_reg, LCD_CMD_MAC_SET),                 // Memory Access Control
         LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_NOP)                   // Команда завершения цепочки команд
     };
     
@@ -126,7 +127,7 @@ void lcd_init(void)
 void lcd_image_set(const lcd_position_t *position, const uint16_t color)
 {
     // Массив элементов цепочки команд для установки изображения
-    const lcd_chain_cmd_t chain_image[] = 
+    const lcd_chain_cmd_t chain_image[4] = 
     {
         LCD_CMD_INIT(position->x, LCD_CMD_COLLUM_SET),   // Установить адреса начальной и конечной столбца
         LCD_CMD_INIT(position->y, LCD_CMD_LINE_SET),     // Установить адреса началного и конечного строки
