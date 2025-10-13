@@ -43,7 +43,7 @@
 // Формат пикселя 5 + 6 + 5 bit RGB
 static const uint8_t lcd_pixel_format = 0b01010101;
 // Memory Access Control register
-static const uint8_t lcd_mac_reg = LCD_MAC_BGR;
+static const uint8_t lcd_mac_reg = 0b00000000;
 
 // Предварительное объявление функции отправки команд после задержки
 static void lcd_delay_cmd_tx(timer_t * timer);
@@ -84,13 +84,14 @@ static void lcd_cmd_tx(const lcd_cmd_t *msg)
         // Установить вывод DCRS в "1" для отправки данных
         io_dcrs_set(LCD_DCRS_DATA);
         
-        // Буфер для данных 
-        uint8_t *buffer_data = (uint8_t *)msg->data;
-        
         // Запись данных в буфер для отправки ( Big-Endian + LSB )
-        //for (uint8_t i = 0; i < msg->size; i++)
-        for (int16_t i = msg->size - 1; i >= 0; i--)
-            spi_transmit(buffer_data + i);
+        for (uint8_t i = 0; i < msg->size; i++)
+        {
+            // Буфер для данных
+            uint8_t *buffer_data = (uint8_t *)msg->data + i;
+            // Передача
+            spi_transmit(buffer_data);
+        }
     }
     
     // Отключить SPI
@@ -100,7 +101,7 @@ static void lcd_cmd_tx(const lcd_cmd_t *msg)
 // Формат пикселя (16-bit)
 static void lcd_pixel_format_set(void)
 {
-    lcd_cmd_t pixel_format = LCD_CMD_INIT(lcd_pixel_format, LCD_CMD_PIXEL_FORMAT_SET);
+    const lcd_cmd_t pixel_format = LCD_CMD_INIT(lcd_pixel_format, LCD_CMD_PIXEL_FORMAT_SET);
     
     // Передача
     lcd_cmd_tx(&pixel_format);
@@ -109,7 +110,7 @@ static void lcd_pixel_format_set(void)
 // Memory Access Control
 static void lcd_mac_set(void)
 {
-    lcd_cmd_t mac_reg = LCD_CMD_INIT(lcd_mac_reg, LCD_CMD_MAC_SET);
+    const lcd_cmd_t mac_reg = LCD_CMD_INIT(lcd_mac_reg, LCD_CMD_MAC_SET);
     
     // Передача
     lcd_cmd_tx(&mac_reg);
@@ -117,10 +118,14 @@ static void lcd_mac_set(void)
 // Включить дисплей
 static void lcd_diplay_on(void)
 {
-    lcd_cmd_t display_on = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON);
+    const lcd_cmd_t display_on = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON);
     
     // Передача
     lcd_cmd_tx(&display_on);
+    
+    // Вызов функций для настройки дисплея
+    lcd_pixel_format_set();
+    lcd_mac_set();
     
     // Тестовая отрисовка
     test_init();
@@ -128,12 +133,8 @@ static void lcd_diplay_on(void)
 
 // Выход из режима сна
 static void lcd_sleep_out(void)
-{
-    // Вызов функций для настройки дисплея
-    lcd_pixel_format_set();
-    lcd_mac_set();
-    
-    lcd_cmd_t sleep_out = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT);
+{   
+    const lcd_cmd_t sleep_out = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT);
     
     // Передача
     lcd_cmd_tx(&sleep_out);
@@ -146,7 +147,7 @@ static void lcd_sleep_out(void)
 // Программный сброс
 static void lcd_reset(void)
 {   
-    lcd_cmd_t reset = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET);
+    const lcd_cmd_t reset = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET);
     
     // Передача
     lcd_cmd_tx(&reset);
@@ -159,22 +160,44 @@ static void lcd_reset(void)
 
 void lcd_init(void)
 {
-    // Аппаратный сброс
-    
     // Включить подсветку дисплея
     io_led_on();
+    
+    // Установить вывод RESX = "1"
+    //io_lcd_resx_high();
+    // Установить вывод RESX = "0"
+    //io_lcd_resx_low();
+    
     // Программный сброс
     lcd_reset();
 }
 
 void lcd_image_set(const lcd_position_t *position, const uint16_t color)
 {
+    // Массив координат X (Big-Endian по 8 бит)
+    uint8_t x[4] = 
+    {
+        (uint8_t)(position->x1 >> 8),
+        (uint8_t)(position->x1),
+        (uint8_t)(position->x2 >> 8),
+        (uint8_t)(position->x2)
+    };
+    
+    // Массив координат Y (Big-Endian по 8 бит) 
+    uint8_t y[4] = 
+    {
+        (uint8_t)(position->y1 >> 8),
+        (uint8_t)(position->y1),
+        (uint8_t)(position->y2 >> 8),
+        (uint8_t)(position->y2)
+    };
+    
     // Установка адреса началного и конечного столбца
-    lcd_cmd_t collum_set = LCD_CMD_INIT(position->x, LCD_CMD_COLLUM_SET);   
+    const lcd_cmd_t collum_set = LCD_CMD_INIT(x, LCD_CMD_COLLUM_SET);   
     // Установка адреса начальной и конечной строки
-    lcd_cmd_t line_set = LCD_CMD_INIT(position->y, LCD_CMD_LINE_SET);       
-    // Команда записи цвета  
-    lcd_cmd_t color_set = LCD_CMD_INIT(color, LCD_CMD_MEMORY_SET);               
+    const lcd_cmd_t line_set = LCD_CMD_INIT(y, LCD_CMD_LINE_SET);       
+    // Команда записи цвета
+    const lcd_cmd_t color_set = LCD_CMD_INIT(color, LCD_CMD_MEMORY_SET);               
     
     // Передача команд
     lcd_cmd_tx(&collum_set);
