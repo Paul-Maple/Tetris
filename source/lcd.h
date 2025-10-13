@@ -27,8 +27,11 @@ enum
 typedef struct
 {
     // Координаты начала и конца записи
-    uint16_t x[2];
-    uint16_t y[2];
+    uint16_t x1;
+    uint16_t x2;
+        
+    uint16_t y1;
+    uint16_t y2;
     
 } lcd_position_t;
 
