@@ -11,11 +11,11 @@ static void spi_preparing(void)
     /* Регистры CR1 и CR2 должны быть настроены перед включением SPI */
     // Настройка регистров SPI
     SPI1->CR1 = SPI_CR1_BR_0 |                   // Делитель частоты на 4
-                SPI_CR1_MSTR |                   // Режим мастера                 
-                SPI_CR1_LSBFIRST;                // Формат LSB
+                SPI_CR1_MSTR;// |                   // Режим мастера
+                //SPI_CR1_LSBFIRST;                // Формат LSB
     
     SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 |    // Передача по 8 бит
-                SPI_CR2_SSOE |                                  // Вывод NSS управляется аппаратно
+                SPI_CR2_SSOE |                                  // Вывод NSS включен и управляется SPI аппаратно
                 SPI_CR2_NSSP;                                   // Вывод NSS "1" между передачами
 }
 
