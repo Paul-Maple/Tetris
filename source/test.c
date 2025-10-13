@@ -6,13 +6,13 @@ void test_init(void)
     // Красный пиксель посередине экрана
     const lcd_position_t position = 
     {
-        .x[0] = 120,
-        .x[1] = 121,
-        .y[0] = 160,
-        .y[1] = 161
+        .x1 = 120,
+        .x2 = 121,
+        .y1 = 160,
+        .y2 = 161
     };
     
-    lcd_image_set(&position, LCD_COLOR_BLACK); 
+    lcd_image_set(&position, LCD_COLOR_RED); 
 }
 
 void test_func(void)
