@@ -9,7 +9,7 @@ void io_init(void)
     
     /*** Порт А ***/
     IO_RESET();
-        IO_OUT_PD(IO_LCD_RESX_PIN);                                             
+        IO_OUT_PU(IO_LCD_RESX_PIN);                                             
         IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
         IO_OUT_PD(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
         IO_OUT_PD(IO_LCD_DCRS_PIN);                                             // Пин выбора команды/данных
@@ -75,16 +75,12 @@ void io_init(void)
     IO_SAVE(H);
 }
 
-void io_lcd_resx_high(void)
-{
-    GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    //
-}
-
-void io_lcd_resx_low(void)
+void io_lcd_hard_reset(void)
 {
     GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    //
+    for (uint16_t i = 0; i < 50000; i++);
+    GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
+    for (uint16_t i = 0; i < 50000; i++);
 }
 
 void io_dcrs_set(const bool state)
