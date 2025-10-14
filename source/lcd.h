@@ -18,8 +18,11 @@ typedef struct
 // Перечисление цветов (Формат: 16 бит)
 enum
 {
+    LCD_COLOR_WHITE = 0xFFFF,
     LCD_COLOR_BLACK = 0x0000,
     LCD_COLOR_RED   = 0xF800,
+    LCD_COLOR_GREEN = 0x07E0,
+    LCD_COLOR_BLUE  = 0x001F
     // TODO: Дописать цвета
 };
 
@@ -29,7 +32,7 @@ typedef struct
     // Координаты начала и конца записи
     uint16_t x1;
     uint16_t x2;
-        
+    
     uint16_t y1;
     uint16_t y2;
     
