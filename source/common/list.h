@@ -3,6 +3,13 @@
 
 #include <typedefs.h>
 
+// Статическая инициализация списка
+#define LIST_STATIC_INIT()                                                      \
+{                                                                               \
+    .head = NULL,                                                               \
+    .last = NULL                                                                \
+}
+
 // Статическая инициализация элемента списка
 #define LIST_ITEM_STATIC_INIT()                                                 \
 {                                                                               \
