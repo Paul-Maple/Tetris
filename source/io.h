@@ -168,11 +168,8 @@
 // Инициализация GPIO
 void io_init(void);
 
-// Аппаратный сброс дисплея отключён
-void io_lcd_resx_high(void);
-
-// Аппаратный сброс дисплея включён
-void io_lcd_resx_low(void);
+// Аппаратный сброс дисплея
+void io_lcd_hard_reset(void);
 
 // Установка состояния пина DCRS
 void io_dcrs_set(const bool state);
