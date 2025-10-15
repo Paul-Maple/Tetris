@@ -78,9 +78,10 @@ void io_init(void)
 void io_lcd_hard_reset(void)
 {
     GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    for (uint16_t i = 0; i < 50000; i++);
+    for (uint32_t i = 0; i < 100000; i++);
     GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    for (uint16_t i = 0; i < 50000; i++);
+    for (uint32_t i = 0; i < 100000; i++);
+    // TODO: Сделать асинхронную задержку вместо этого недоразумения с пустым циклом
 }
 
 void io_dcrs_set(const bool state)
