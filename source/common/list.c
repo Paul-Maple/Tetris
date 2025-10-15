@@ -66,7 +66,9 @@ void list_remove(list_t *list, list_item_t *item)
         item->next->prev = item->prev;
     
     // Очистка указателей удаляемого элемента
-    list_item_init(item);
+    //list_item_init(item);    
+    /* В этом проекте НЕ РАССКОМЕНТИРОВАТЬ!!!!
+    Иначе не будет работать функция lcd_delay_cmd_tx() */
 }
 
 // Проверка наличия элемента в списке
