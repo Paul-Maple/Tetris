@@ -48,11 +48,7 @@ void timer_clk_notice(void)
 static event_t timer_event_raise;
 
 // Список таймеров
-static list_t timer_list = 
-{
-    .head = NULL,
-    .last = NULL,
-};
+static list_t timer_list = LIST_STATIC_INIT();
 
 void timer_module_init(void)
 {

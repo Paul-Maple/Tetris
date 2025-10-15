@@ -2,11 +2,7 @@
 #include "mcu.h"
 
 // Список событий
-static list_t event_list = 
-{
-    .head = NULL,
-    .last = NULL,
-};
+static list_t event_list = LIST_STATIC_INIT();
 
 // Инициализация события
 void event_init(event_t *event, event_cb_ptr cb)
