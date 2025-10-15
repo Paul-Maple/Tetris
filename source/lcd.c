@@ -6,7 +6,7 @@
 #include <event.h>
 #include <test.h>
 
-// Тики таймера для задержки отправки команд
+// Тики таймера для асинхронной задержки отправки команд
 #define LCD_TIME_DELAY_1MS          TIMER_TICKS_MS(1)
 #define LCD_TIME_DELAY_5MS          TIMER_TICKS_MS(5)
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
@@ -16,19 +16,20 @@
 #define LCD_DCRS_CMD         0    // Команда
 
 // Команды для управления дисплеем
-#define LCD_CMD_SOFT_RESET          0x01         // Программный сброс
-#define LCD_CMD_SLEEP_OUT           0x11         // Выход из режима сна       
-#define LCD_CMD_NORMAL_MODE         0x13         // Нормальный режим отображения
-#define LCD_CMD_DISPLAY_ON          0x29         // Включение дисплея
-#define LCD_CMD_DISPLAY_OFF         0x28         // Выключение дисплея
-#define LCD_CMD_MAC_SET             0x36         // Настройка доступа к памяти
-#define LCD_CMD_COLLUM_SET          0x2A         // Установка адреса столбца
-#define LCD_CMD_LINE_SET            0x2B         // Установка адреса строки    
-#define LCD_CMD_MEMORY_SET          0x2C         // Передача данных от МК до кадровой памяти
-#define LCD_CMD_PIXEL_FORMAT_SET    0x3A         // Установка формата RGB
-#define LCD_CMD_GAMMA_SET           0x26         // Установка гаммы
-#define LCD_CMD_COLOR_SET           0x2D         // Преобразование цветовой глубины с 16 бит в 18 бит
-#define LCD_CMD_NOP                 0x00         // Пустая команда (Для завершения передачи)
+#define LCD_CMD_SOFT_RESET              0x01         // Программный сброс
+#define LCD_CMD_SLEEP_OUT               0x11         // Выход из режима сна       
+#define LCD_CMD_DISPLAY_ON              0x29         // Включение дисплея
+#define LCD_CMD_DISPLAY_OFF             0x28         // Выключение дисплея
+#define LCD_CMD_NORMAL_MODE             0x13         // Нормальный режим отображения
+#define LCD_CMD_MAC_SET                 0x36         // Настройка доступа к памяти
+#define LCD_CMD_PIXEL_FORMAT_SET        0x3A         // Установка формата RGB
+#define LCD_CMD_INTERFACE_CONTROL_SET   0x6F         // Установка способа передачи и отображения данных
+#define LCD_CMD_COLLUM_SET              0x2A         // Установка адреса столбца
+#define LCD_CMD_LINE_SET                0x2B         // Установка адреса строки    
+#define LCD_CMD_MEMORY_SET              0x2C         // Передача данных от МК до кадровой памяти
+#define LCD_CMD_GAMMA_SET               0x26         // Установка гаммы
+#define LCD_CMD_COLOR_SET               0x2D         // Преобразование цветовой глубины с 16 бит в 18 бит
+#define LCD_CMD_NOP                     0x00         // Пустая команда (Для завершения передачи)
 // TODO: Добавить необходимые команды, а лишние убрать
 
 // Статическая инициализация элемента цепочки команд
@@ -42,27 +43,35 @@
 //  Инициализация элемента цепочки команд
 #define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT(&(data), sizeof(data), cmd)
 
-/*
-    Последовательность команд для инициализации:
+/*   Последовательность команд для инициализации:
 io_lcd_hard_reset()     - Аппаратный сброс
 io_led_on()             - Включить подсветку дисплея
 lcd_reset()             - Программный сброс
 lcd_pixel_format_set()  - Формат пикселя
 lcd_mac_set()           - Доступ к памяти
+lcd_ic_set()            - Способа передачи и отображения данных
 lcd_sleep_out()         - Выход из режима сна
 lcd_diplay_on()         - Включить дисплей
 */
 
     /*** Регистры LCD ***/
-// Формат пикселя 5 + 6 + 5 bit RGB
-static const uint8_t lcd_pixel_format = 0b01010101;
-// Memory Access Control register
+// Регистр формата пикселя 5 + 6 + 5  ( 16 bit RGB )
+static const uint8_t lcd_pixel_format_reg = LCD_PIXEL_16_BIT;
+// Регистр доступа к памяти дисплея
 static const uint8_t lcd_mac_reg = 0b00000000;
+// Регистр способа передачи и отображения данных
+static const uint8_t lcd_ic_reg[3] = 
+{
+    0b00000000,
+    0b00000000,
+    LCD_IC3_DM_RGB | LCD_IC3_RM_RGB,
+};
 
     /*** Предварительные обяъвления функций ***/
 static void lcd_reset(void);
 static void lcd_pixel_format_set(void);
 static void lcd_mac_set(void);
+static void lcd_ic_set(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
 
@@ -73,6 +82,7 @@ static list_t lcd_list_cmd = LIST_STATIC_INIT();
 static event_t lcd_reset_event              = EVENT_STATIC_INIT(lcd_reset);
 static event_t lcd_pixel_format_set_event   = EVENT_STATIC_INIT(lcd_pixel_format_set);
 static event_t lcd_mac_set_event            = EVENT_STATIC_INIT(lcd_mac_set);
+static event_t lcd_ic_set_event             = EVENT_STATIC_INIT(lcd_ic_set);
 static event_t lcd_sleep_out_event          = EVENT_STATIC_INIT(lcd_sleep_out);
 static event_t lcd_diplay_on_event          = EVENT_STATIC_INIT(lcd_diplay_on);
 
@@ -86,13 +96,16 @@ static void lcd_delay_cmd_tx(timer_t * timer)
     // Сброс флага задержки
     lcd_delay_flag = false;
     
-    for (list_item_t *item = lcd_list_cmd.head; item != NULL; item = item->next)
+    // Проходимся по списку 
+    for (list_item_t *temp_item = lcd_list_cmd.head; temp_item != NULL; temp_item = temp_item->next)
     {
         event_t * const temp_event = (event_t *)lcd_list_cmd.head;
-        // Вызов функции отправки команды
+        // Вызов отправки команды
         temp_event->cb();
-        list_remove(&lcd_list_cmd, item);
-        //  Если установлена задержка - выход
+        // Удаляем из списка
+        list_remove(&lcd_list_cmd, &temp_event->item);
+        
+        // Если установлена задержка - выход из цикла
         if (lcd_delay_flag)
             break;
     }
@@ -122,7 +135,7 @@ static void lcd_cmd_tx(const lcd_cmd_t *msg)
         // Установить вывод DCRS в "1" для отправки данных
         io_dcrs_set(LCD_DCRS_DATA);
         
-        // Запись данных в буфер для отправки ( Big-Endian + LSB )
+        // Запись данных в буфер для отправки ( Big-Endian + MSB in SPI )
         for (uint8_t i = 0; i < msg->size; i++)
         {
             // Буфер для данных
@@ -136,10 +149,19 @@ static void lcd_cmd_tx(const lcd_cmd_t *msg)
     spi_disable();
 }
 
+// Установка контроля интерфейса 
+static void lcd_ic_set(void)
+{
+    const lcd_cmd_t interface_control = LCD_CMD_INIT(lcd_ic_reg, LCD_CMD_INTERFACE_CONTROL_SET);
+    
+    // Передача
+    lcd_cmd_tx(&interface_control);
+}
+
 // Формат пикселя (16-bit)
 static void lcd_pixel_format_set(void)
 {
-    const lcd_cmd_t pixel_format = LCD_CMD_INIT(lcd_pixel_format, LCD_CMD_PIXEL_FORMAT_SET);
+    const lcd_cmd_t pixel_format = LCD_CMD_INIT(lcd_pixel_format_reg, LCD_CMD_PIXEL_FORMAT_SET);
     
     // Передача
     lcd_cmd_tx(&pixel_format);
@@ -203,6 +225,7 @@ void lcd_init(void)
     // Добавляем события для инициализации в список
     list_insert(&lcd_list_cmd, &lcd_pixel_format_set_event.item);
     list_insert(&lcd_list_cmd, &lcd_mac_set_event.item);
+    list_insert(&lcd_list_cmd, &lcd_ic_set_event.item);
     list_insert(&lcd_list_cmd, &lcd_sleep_out_event.item);
     list_insert(&lcd_list_cmd, &lcd_diplay_on_event.item);
     
