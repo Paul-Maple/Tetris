@@ -9,13 +9,13 @@ void io_init(void)
     
     /*** Порт А ***/
     IO_RESET();
-        IO_OUT_PU(IO_LCD_RESX_PIN);                                             
+        IO_OUT_HIGH_PU(IO_LCD_RESX_PIN);                                        // Пин для аппаратного сброса     
         IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
         IO_OUT_PD(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
         IO_OUT_PD(IO_LCD_DCRS_PIN);                                             // Пин выбора команды/данных
         IO_AF_PU(IO_LCD_CSX_PIN, 5);                                            // Пин выбора slave-устройства
         IO_NC(5);
-        IO_NC(6);
+        IO_AF_PD(IO_LCD_MISO_PIN, 5);                                           // Пин MOSI
         IO_AF_PD(IO_LCD_SDA_PIN, 5);                                            // Пин для передачи данных
         IO_NC(8);
         IO_NC(9);
@@ -78,9 +78,9 @@ void io_init(void)
 void io_lcd_hard_reset(void)
 {
     GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    for (uint32_t i = 0; i < 100000; i++);
+    for (uint32_t i = 0; i < 50000; i++);
     GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    for (uint32_t i = 0; i < 100000; i++);
+    for (uint32_t i = 0; i < 50000; i++);
     // TODO: Сделать асинхронную задержку вместо этого недоразумения с пустым циклом
 }
 
