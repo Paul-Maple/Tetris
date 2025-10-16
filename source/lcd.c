@@ -43,7 +43,7 @@
 //  Инициализация элемента цепочки команд
 #define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT(&(data), sizeof(data), cmd)
 
-/*   Последовательность команд для инициализации:
+/*   Последовательность команд для инициализации ILI9341:
 io_lcd_hard_reset()     - Аппаратный сброс
 io_led_on()             - Включить подсветку дисплея
 lcd_reset()             - Программный сброс
@@ -75,8 +75,8 @@ static void lcd_ic_set(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
 
-// Список команд для отправки
-static list_t lcd_list_cmd = LIST_STATIC_INIT();
+// Список команд для инициализации
+static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
 
 // События отправки команд
 static event_t lcd_reset_event              = EVENT_STATIC_INIT(lcd_reset);
@@ -89,7 +89,7 @@ static event_t lcd_diplay_on_event          = EVENT_STATIC_INIT(lcd_diplay_on);
 // Флаг активной задержки отправки команд
 static bool lcd_delay_flag = false;
 
-// Отправка следующей команды после задержки
+// Отправка команд после задержки
 /* Вызывается как callback у сработавшего таймера задержки */
 static void lcd_delay_cmd_tx(timer_t * timer)
 {
@@ -97,15 +97,15 @@ static void lcd_delay_cmd_tx(timer_t * timer)
     lcd_delay_flag = false;
     
     // Проходимся по списку 
-    for (list_item_t *temp_item = lcd_list_cmd.head; temp_item != NULL; temp_item = temp_item->next)
+    for (list_item_t *temp_item = lcd_cmd_init_list.head; temp_item != NULL; temp_item = temp_item->next)
     {
-        event_t * const temp_event = (event_t *)lcd_list_cmd.head;
+        event_t * const temp_event = (event_t *)lcd_cmd_init_list.head;
         // Вызов отправки команды
         temp_event->cb();
         // Удаляем из списка
-        list_remove(&lcd_list_cmd, &temp_event->item);
+        list_remove(&lcd_cmd_init_list, &temp_event->item);
         
-        // Если установлена задержка - выход из цикла
+        // Если после отправки команды установлена задержка - выход из цикла
         if (lcd_delay_flag)
             break;
     }
@@ -183,7 +183,7 @@ static void lcd_diplay_on(void)
     // Передача
     lcd_cmd_tx(&display_on);
     
-    // Тестовая отрисовка
+    // Тестовая отрисовка (TODO: удалить)
     test_init();
 }
 
@@ -223,11 +223,11 @@ void lcd_init(void)
     io_led_on();
     
     // Добавляем события для инициализации в список
-    list_insert(&lcd_list_cmd, &lcd_pixel_format_set_event.item);
-    list_insert(&lcd_list_cmd, &lcd_mac_set_event.item);
-    list_insert(&lcd_list_cmd, &lcd_ic_set_event.item);
-    list_insert(&lcd_list_cmd, &lcd_sleep_out_event.item);
-    list_insert(&lcd_list_cmd, &lcd_diplay_on_event.item);
+    list_insert(&lcd_cmd_init_list, &lcd_pixel_format_set_event.item);
+    list_insert(&lcd_cmd_init_list, &lcd_mac_set_event.item);
+    list_insert(&lcd_cmd_init_list, &lcd_ic_set_event.item);
+    list_insert(&lcd_cmd_init_list, &lcd_sleep_out_event.item);
+    list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);
     
     // Взводим событие программного сброса дисплея
     event_raise(&lcd_reset_event);
