@@ -54,6 +54,7 @@
 #define IO_LCD_SCL_PIN      1                                                   /*** SCL,   Port A ***/
 #define IO_LCD_SDA_PIN      7                                                   /*** SDA,   Port A ***/
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
+#define IO_LCD_MISO_PIN     6                                                   /*** MISO,  Port A ***/
 
 #define IO_LCD_RESX_PIN     0                                                   /*** Reset, Port A ***/
 #define IO_LCD_DCRS_PIN     3                                                   /*** DC/RS, Port A ***/
@@ -133,7 +134,12 @@
 // Установка номера AF
 #define IO_AF_NUMBER_SET(pin, number)                                           \
     af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)
-
+        
+        /*** Установка уровня сигнала на выводе ***/
+// Установка высокого уровень сигнала
+#define IO_OUT_HIGH_SET(pin)                                                    \
+    odr |= IO_SHIFT_LEFT(uint32_t, 1, pin)
+        
         /*** Установка итоговой конфигурации пинов ***/
 // Non connected pin
 #define IO_NC(pin)        IO_IN_PD(pin)
@@ -151,6 +157,12 @@
 // Output, Pull-Up
 #define IO_OUT_PU(pin)                                                          \
     IO_OUT_MODE_SET(pin);                                                       \
+    IO_PULL_UP_SET(pin)
+
+// Output High, Pull-Up
+#define IO_OUT_HIGH_PU(pin)                                                     \
+    IO_OUT_MODE_SET(pin);                                                       \
+    IO_OUT_HIGH_SET(pin);                                                       \
     IO_PULL_UP_SET(pin)
 
 // Alternate function, Pull-Down            
