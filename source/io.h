@@ -53,10 +53,9 @@
 // Пины LCD (Режим AF5)
 #define IO_LCD_SCL_PIN      1                                                   /*** SCL,   Port A ***/
 #define IO_LCD_SDA_PIN      7                                                   /*** SDA,   Port A ***/
+// Пины LCD (Режим OUT)
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
-#define IO_LCD_MISO_PIN     6                                                   /*** MISO,  Port A ***/
-
-#define IO_LCD_RESX_PIN     0                                                   /*** Reset, Port A ***/
+#define IO_LCD_RESX_PIN     0                                                   /*** RESET, Port A ***/
 #define IO_LCD_DCRS_PIN     3                                                   /*** DC/RS, Port A ***/
 // TODO: Реализовать подсветку на ШИМе
 #define IO_LCD_LED_PIN      2                                                   /*** LED,   Port A ***/
@@ -121,7 +120,7 @@
 #define IO_AF_MODE_SET(pin)                                                     \
     moder |= IO_SHIFT_LEFT(uint32_t, IO_ALTERNATE_MODE_MASK, (pin)*2) 
 
-        /*** Установка режима подтяжки пинов (pupdr) ***/
+        /*** Установка режима подтяжки пинов ***/
 // Установка подтяжки вниз
 #define IO_PULL_DOWN_SET(pin)                                                   \
     pupdr |= IO_SHIFT_LEFT(uint32_t, IO_PULL_DOWN_MASK, (pin)*2)
@@ -134,12 +133,16 @@
 // Установка номера AF
 #define IO_AF_NUMBER_SET(pin, number)                                           \
     af |=  IO_SHIFT_LEFT(uint64_t, number, (pin)*4)
-        
+
         /*** Установка уровня сигнала на выводе ***/
 // Установка высокого уровень сигнала
 #define IO_OUT_HIGH_SET(pin)                                                    \
     odr |= IO_SHIFT_LEFT(uint32_t, 1, pin)
-        
+
+// Установка низкого уровень сигнала
+#define IO_OUT_LOW_SET(pin)                                                     \
+    odr &= ~IO_SHIFT_LEFT(uint32_t, 1, pin)
+
         /*** Установка итоговой конфигурации пинов ***/
 // Non connected pin
 #define IO_NC(pin)        IO_IN_PD(pin)
@@ -149,6 +152,7 @@
     IO_IN_MODE_SET(pin);                                                        \
     IO_PULL_DOWN_SET(pin)
 
+        /* Output */
 // Output, Pull-Down
 #define IO_OUT_PD(pin)                                                          \
     IO_OUT_MODE_SET(pin);                                                       \
@@ -159,22 +163,30 @@
     IO_OUT_MODE_SET(pin);                                                       \
     IO_PULL_UP_SET(pin)
 
-// Output High, Pull-Up
+// Output LOW, Pull-Up
+#define IO_OUT_LOW_PD(pin)                                                      \
+    IO_OUT_PD(pin);                                                             \
+    IO_OUT_LOW_SET(pin)                                                         \
+
+// Output HIGH, Pull-Up
 #define IO_OUT_HIGH_PU(pin)                                                     \
-    IO_OUT_MODE_SET(pin);                                                       \
-    IO_OUT_HIGH_SET(pin);                                                       \
-    IO_PULL_UP_SET(pin)
+    IO_OUT_PU(pin);                                                             \
+    IO_OUT_HIGH_SET(pin)                                                        \
+
+        /* Alternate function */
+// Alternate function           
+#define IO_AF(pin, number)                                                      \
+    IO_AF_MODE_SET(pin);                                                        \
+    IO_AF_NUMBER_SET(pin, number)
 
 // Alternate function, Pull-Down            
 #define IO_AF_PD(pin, number)                                                   \
-    IO_AF_MODE_SET(pin);                                                        \
-    IO_AF_NUMBER_SET(pin, number);                                              \
+    IO_AF(pin, number);                                                         \
     IO_PULL_DOWN_SET(pin)
 
 // Alternate function, Pull-Up          
 #define IO_AF_PU(pin, number)                                                   \
-    IO_AF_MODE_SET(pin);                                                        \
-    IO_AF_NUMBER_SET(pin, number);                                              \
+    IO_AF(pin, number);                                                         \
     IO_PULL_UP_SET(pin)
 
 // Инициализация GPIO
@@ -182,6 +194,9 @@ void io_init(void);
 
 // Аппаратный сброс дисплея
 void io_lcd_hard_reset(void);
+
+// Установка состояния пина DCRS
+void io_nss_set(const bool state);
 
 // Установка состояния пина DCRS
 void io_dcrs_set(const bool state);
