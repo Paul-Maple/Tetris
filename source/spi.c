@@ -45,7 +45,7 @@ void spi_transmit(const uint8_t *data, const uint8_t size)
     spi_enable();
     
     // NSS low
-    //io_nss_set(0);
+    io_nss_set(0);
     
     // Запись данных в буфер для отправки ( Big-Endian + MSB in SPI )
     for (uint8_t i = 0; i < size; i++)
@@ -61,7 +61,7 @@ void spi_transmit(const uint8_t *data, const uint8_t size)
     while (SPI1->SR & SPI_SR_BSY);
     
     // NSS high
-    //io_nss_set(1);
+    io_nss_set(1);
     
     // Отключить SPI
     spi_disable();
