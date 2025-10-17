@@ -6,12 +6,12 @@
 // Структура команды
 typedef struct
 {
+    // Команда
+    uint8_t cmd;
     // Указатель на данные
     const void *data;
     // Размер данных (В байтах)
     uint8_t size;
-    // Команда
-    uint8_t cmd;
     
 } lcd_cmd_t;
 
