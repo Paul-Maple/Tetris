@@ -7,7 +7,7 @@
 #include <test.h>
 
 // Тики таймера для асинхронной задержки отправки команд
-#define LCD_TIME_DELAY_1MS          TIMER_TICKS_MS(1)
+//#define LCD_TIME_DELAY_1MS          TIMER_TICKS_MS(1)
 #define LCD_TIME_DELAY_5MS          TIMER_TICKS_MS(5)
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
 
@@ -33,15 +33,15 @@
 // TODO: Добавить необходимые команды, а лишние убрать
 
 // Статическая инициализация элемента цепочки команд
-#define LCD_CMD_STATIC_INIT(_data, _size, _cmd)                                 \
+#define LCD_CMD_STATIC_INIT(_cmd, _data, _size)                                 \
 {                                                                               \
+    .cmd  = _cmd,                                                               \
     .data = _data,                                                              \
-    .size = _size,                                                              \
-    .cmd  = _cmd                                                                \
+    .size = _size                                                               \
 }
 
 //  Инициализация элемента цепочки команд
-#define LCD_CMD_INIT(data, cmd)     LCD_CMD_STATIC_INIT(&(data), sizeof(data), cmd)
+#define LCD_CMD_INIT(cmd, data)     LCD_CMD_STATIC_INIT(cmd, &(data), sizeof(data))
 
 /*   Последовательность команд для инициализации ILI9341:
 io_lcd_hard_reset()     - Аппаратный сброс
@@ -74,18 +74,19 @@ static void lcd_mac_set(void);
 static void lcd_ic_set(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
+extern void test_init(void);
 
 // Список команд для инициализации
 static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
 
 // События отправки команд
-static event_t lcd_reset_event              = EVENT_STATIC_INIT(lcd_reset);
-static event_t lcd_pixel_format_set_event   = EVENT_STATIC_INIT(lcd_pixel_format_set);
-static event_t lcd_mac_set_event            = EVENT_STATIC_INIT(lcd_mac_set);
-static event_t lcd_ic_set_event             = EVENT_STATIC_INIT(lcd_ic_set);
-static event_t lcd_sleep_out_event          = EVENT_STATIC_INIT(lcd_sleep_out);
-static event_t lcd_diplay_on_event          = EVENT_STATIC_INIT(lcd_diplay_on);
-
+static event_t lcd_reset_event            = EVENT_STATIC_INIT(lcd_reset);
+static event_t lcd_pixel_format_set_event = EVENT_STATIC_INIT(lcd_pixel_format_set);
+static event_t lcd_mac_set_event          = EVENT_STATIC_INIT(lcd_mac_set);
+static event_t lcd_ic_set_event           = EVENT_STATIC_INIT(lcd_ic_set);
+static event_t lcd_sleep_out_event        = EVENT_STATIC_INIT(lcd_sleep_out);
+static event_t lcd_diplay_on_event        = EVENT_STATIC_INIT(lcd_diplay_on);
+static event_t lcd_set_image_event        = EVENT_STATIC_INIT(test_init);
 // Флаг активной задержки отправки команд
 static bool lcd_delay_flag = false;
 
@@ -96,7 +97,7 @@ static void lcd_delay_cmd_tx(timer_t * timer)
     // Сброс флага задержки
     lcd_delay_flag = false;
     
-    // Проходимся по списку 
+    // Обработка списка команд 
     for (list_item_t *temp_item = lcd_cmd_init_list.head; temp_item != NULL; temp_item = temp_item->next)
     {
         event_t * const temp_event = (event_t *)lcd_cmd_init_list.head;
@@ -119,15 +120,11 @@ static void lcd_cmd_tx(const lcd_cmd_t *msg)
 {
     ASSERT_NULL_PTR(msg);
     
-    // Включить SPI
-    spi_enable();
-    
     // Установить вывод DCRS в "0" для отправки команды
     io_dcrs_set(LCD_DCRS_CMD);
     
-    const uint8_t *buffer_cmd = &msg->cmd;
     // Отправка команды
-    spi_transmit(buffer_cmd);
+    spi_transmit((uint8_t *)&msg->cmd, 1);
     
     // Если команда имеет параметры
     if (msg->size > 0)
@@ -135,24 +132,23 @@ static void lcd_cmd_tx(const lcd_cmd_t *msg)
         // Установить вывод DCRS в "1" для отправки данных
         io_dcrs_set(LCD_DCRS_DATA);
         
-        // Запись данных в буфер для отправки ( Big-Endian + MSB in SPI )
-        for (uint8_t i = 0; i < msg->size; i++)
-        {
-            // Буфер для данных
-            uint8_t *buffer_data = (uint8_t *)msg->data + i;
-            // Передача
-            spi_transmit(buffer_data);
-        }
+        // Передача данных
+        spi_transmit((uint8_t *)msg->data, msg->size);
     }
-    
-    // Отключить SPI
-    spi_disable();
+}
+
+static void lcd_delay_timer_start(timer_interval_t interval)
+{
+    // Запуск таймера
+    timer_start(&lcd_delay_cmd_timer, interval);
+    // Установка флага задержки
+    lcd_delay_flag = true;
 }
 
 // Установка контроля интерфейса 
 static void lcd_ic_set(void)
 {
-    const lcd_cmd_t interface_control = LCD_CMD_INIT(lcd_ic_reg, LCD_CMD_INTERFACE_CONTROL_SET);
+    const lcd_cmd_t interface_control = LCD_CMD_INIT(LCD_CMD_INTERFACE_CONTROL_SET, lcd_ic_reg);
     
     // Передача
     lcd_cmd_tx(&interface_control);
@@ -161,7 +157,7 @@ static void lcd_ic_set(void)
 // Формат пикселя (16-bit)
 static void lcd_pixel_format_set(void)
 {
-    const lcd_cmd_t pixel_format = LCD_CMD_INIT(lcd_pixel_format_reg, LCD_CMD_PIXEL_FORMAT_SET);
+    const lcd_cmd_t pixel_format = LCD_CMD_INIT(LCD_CMD_PIXEL_FORMAT_SET, lcd_pixel_format_reg);
     
     // Передача
     lcd_cmd_tx(&pixel_format);
@@ -170,7 +166,7 @@ static void lcd_pixel_format_set(void)
 // Memory Access Control
 static void lcd_mac_set(void)
 {
-    const lcd_cmd_t mac_reg = LCD_CMD_INIT(lcd_mac_reg, LCD_CMD_MAC_SET);
+    const lcd_cmd_t mac_reg = LCD_CMD_INIT(LCD_CMD_MAC_SET, lcd_mac_reg);
     
     // Передача
     lcd_cmd_tx(&mac_reg);
@@ -178,59 +174,55 @@ static void lcd_mac_set(void)
 // Включить дисплей
 static void lcd_diplay_on(void)
 {
-    const lcd_cmd_t display_on = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_DISPLAY_ON);
+    const lcd_cmd_t display_on = LCD_CMD_STATIC_INIT(LCD_CMD_DISPLAY_ON, NULL, 0);
     
     // Передача
     lcd_cmd_tx(&display_on);
-    
-    // Тестовая отрисовка (TODO: удалить)
-    test_init();
 }
 
 // Выход из режима сна
 static void lcd_sleep_out(void)
 {
-    const lcd_cmd_t sleep_out = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SLEEP_OUT);
+    const lcd_cmd_t sleep_out = LCD_CMD_STATIC_INIT(LCD_CMD_SLEEP_OUT, NULL, 0);
     
     // Передача
     lcd_cmd_tx(&sleep_out);
     
-    // Запуск таймера для задержки отправки следующей команды (120 мс)
-    timer_start(&lcd_delay_cmd_timer, LCD_TIME_DELAY_120MS);    
-    // Установка флага задержки
-    lcd_delay_flag = true;
+    // Запуск таймера для задержки отправки следующей команды
+    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
 }
 
 // Программный сброс
 static void lcd_reset(void)
 {
-    const lcd_cmd_t reset = LCD_CMD_STATIC_INIT(NULL, 0, LCD_CMD_SOFT_RESET);
+    const lcd_cmd_t reset = LCD_CMD_STATIC_INIT(LCD_CMD_SOFT_RESET, NULL, 0);
     
     // Передача
     lcd_cmd_tx(&reset);
     
-    // Запуск таймера для задержки отправки следующей команды (5 мс)
-    timer_start(&lcd_delay_cmd_timer, LCD_TIME_DELAY_5MS);
-    // Установка флага задержки
-    lcd_delay_flag = true;
+    // Запуск таймера для задержки отправки следующей команды
+    lcd_delay_timer_start(LCD_TIME_DELAY_5MS);
 }
 
 void lcd_init(void)
 {
     // Аппаратный сброс
     io_lcd_hard_reset();
+    // Запуск таймера для задержки отправки следующей команды
+    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
+    
     // Включить подсветку дисплея
     io_led_on();
     
     // Добавляем события для инициализации в список
+    list_insert(&lcd_cmd_init_list, &lcd_reset_event.item);
     list_insert(&lcd_cmd_init_list, &lcd_pixel_format_set_event.item);
-    list_insert(&lcd_cmd_init_list, &lcd_mac_set_event.item);
+    //list_insert(&lcd_cmd_init_list, &lcd_mac_set_event.item);
     list_insert(&lcd_cmd_init_list, &lcd_ic_set_event.item);
     list_insert(&lcd_cmd_init_list, &lcd_sleep_out_event.item);
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);
     
-    // Взводим событие программного сброса дисплея
-    event_raise(&lcd_reset_event);
+    list_insert(&lcd_cmd_init_list, &lcd_set_image_event.item);
 }
 
 void lcd_image_set(const lcd_position_t *position, const uint16_t color)
@@ -261,11 +253,11 @@ void lcd_image_set(const lcd_position_t *position, const uint16_t color)
     };
     
     // Установка адреса началного и конечного столбца
-    const lcd_cmd_t collum_set = LCD_CMD_INIT(x, LCD_CMD_COLLUM_SET);   
+    const lcd_cmd_t collum_set = LCD_CMD_INIT(LCD_CMD_COLLUM_SET, x);   
     // Установка адреса начальной и конечной строки
-    const lcd_cmd_t line_set = LCD_CMD_INIT(y, LCD_CMD_LINE_SET);       
+    const lcd_cmd_t line_set = LCD_CMD_INIT(LCD_CMD_LINE_SET, y);       
     // Команда записи цвета
-    const lcd_cmd_t color_set = LCD_CMD_INIT(color_big_endian, LCD_CMD_MEMORY_SET);               
+    const lcd_cmd_t color_set = LCD_CMD_INIT(LCD_CMD_MEMORY_SET, color_big_endian);               
     
     // Передача команд
     lcd_cmd_tx(&collum_set);
