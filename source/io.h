@@ -48,28 +48,28 @@
 
         /*** Определение номеров функциональных пинов ***/
 // Cветодиод для теста
-#define IO_LED_PIN      13
+#define IO_LED_PIN      13U
 
 // Пины LCD (Режим AF5)
-#define IO_LCD_SCL_PIN      1                                                   /*** SCL,   Port A ***/
-#define IO_LCD_SDA_PIN      7                                                   /*** SDA,   Port A ***/
+#define IO_LCD_SCL_PIN      1U                                                  /*** SCL,   Port A ***/
+#define IO_LCD_SDA_PIN      7U                                                  /*** SDA,   Port A ***/
 // Пины LCD (Режим OUT)
-#define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
-#define IO_LCD_RESX_PIN     0                                                   /*** RESET, Port A ***/
-#define IO_LCD_DCRS_PIN     3                                                   /*** DC/RS, Port A ***/
+#define IO_LCD_CSX_PIN      5U                                                  /*** CSX,   Port A ***/
+#define IO_LCD_RESX_PIN     0U                                                  /*** RESET, Port A ***/
+#define IO_LCD_DCRS_PIN     3U                                                  /*** DC/RS, Port A ***/
 // TODO: Реализовать подсветку на ШИМе
-#define IO_LCD_LED_PIN      2                                                   /*** LED,   Port A ***/
+#define IO_LCD_LED_PIN      2U                                                  /*** LED,   Port A ***/
 
 // Пины для отладки (Режим AF0)
-#define IO_JTMS_PIN     13                                                      /*** JTAG pin ***/
-#define IO_JTCK_PIN     14                                                      /*** JTAG pin ***/
-#define IO_JTDI_PIN     15                                                      /*** JTAG pin ***/
+#define IO_JTMS_PIN     13U                                                     /*** JTAG pin ***/
+#define IO_JTCK_PIN     14U                                                     /*** JTAG pin ***/
+#define IO_JTDI_PIN     15U                                                     /*** JTAG pin ***/
 
 // Пины кнопок (Все порт С)
-#define IO_BUTTON_0     0                                                       /***  ***/
-#define IO_BUTTON_1     1                                                       /***  ***/
-#define IO_BUTTON_2     2                                                       /***  ***/
-#define IO_BUTTON_3     3                                                       /***  ***/
+#define IO_BUTTON_0     0U                                                      /***  ***/
+#define IO_BUTTON_1     1U                                                      /***  ***/
+#define IO_BUTTON_2     2U                                                      /***  ***/
+#define IO_BUTTON_3     3U                                                      /***  ***/
 
        /*** Сброс и установка значений в регистрах I/O ***/
 // Сброс регистров I/O
