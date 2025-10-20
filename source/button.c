@@ -32,7 +32,9 @@ static void button_pressed_event_cb(timer_t *timer)
         button->pressed = true; 
         
         // Оповещение модулей о нажатии кнопки
-        // 
+        // module_1_button_pressed_notice();
+        // module_2_notice();
+        // и т.д.
         return;
     }
     
@@ -49,9 +51,9 @@ static void button_pressed_event_cb(timer_t *timer)
 
 // Кнопки
 static button_t button_0 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
-//button_t button_1 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
-//button_t button_2 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
-//button_t button_3 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
+//static button_t button_1 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
+//static button_t button_2 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
+//static button_t button_3 = BUTTON_STATIC_INIT(TIMER_MODE_ONE_SHOT, button_pressed_event_cb);
 
 void button_init(void)
 {
