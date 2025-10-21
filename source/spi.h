@@ -10,6 +10,6 @@ void spi_enable(void);
 void spi_disable(void);
 
 // Передача одного байта данных
-void spi_transmit(const uint8_t *data, const uint8_t size);
+void spi_transmit(const uint16_t *data);
 
 #endif // __SPI_H
