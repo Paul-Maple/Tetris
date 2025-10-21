@@ -9,12 +9,12 @@ void io_init(void)
     
     /*** Порт А ***/
     IO_RESET();
-        IO_OUT_LOW_PD(IO_LCD_RESX_PIN);                                         // Пин для аппаратного сброса     
+        IO_OUT_HIGH_PU(IO_LCD_RESX_PIN);                                        // Пин для аппаратного сброса     
         IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
-        IO_OUT_HIGH_PU(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
-        IO_OUT_HIGH_PU(IO_LCD_DCRS_PIN);                                             // Пин выбора команды/данных
-        IO_AF_PU(4, 5);                                                         // Fake Chip select pin                                      
-        IO_OUT_HIGH_PU(IO_LCD_CSX_PIN);                                              // Пин выбора slave-устройства
+        IO_OUT_LOW_PD(IO_LCD_LED_PIN);                                              // Пин подсветки дисплея
+        IO_OUT_LOW_PD(IO_LCD_DCRS_PIN);                                             // Пин выбора команды/данных
+       IO_AF_PU(4, 5);                                                         // Fake Chip select pin                                      
+       IO_OUT_HIGH_PU(IO_LCD_CSX_PIN);                                              // Пин выбора slave-устройства
         IO_NC(6);                                                               
         IO_AF_PD(IO_LCD_SDA_PIN, 5);                                            // Пин для передачи данных
         IO_NC(8);
@@ -77,9 +77,9 @@ void io_init(void)
 
 void io_lcd_hard_reset(void)
 {
-    for (uint16_t i = 0; i < 5000; i++);
+    GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
+    for (uint16_t i = 0; i < 65000; i++);
     GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    for (uint16_t i = 0; i < 5000; i++);
 }
 
 void io_nss_set(const bool state)
