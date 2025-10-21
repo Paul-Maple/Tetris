@@ -3,7 +3,7 @@
 
 void test_init(void)
 {
-    // Красный пиксель посередине экрана
+    // Установка координат
     const lcd_position_t position = 
     {
         .x1 = 120,
@@ -12,6 +12,7 @@ void test_init(void)
         .y2 = 161
     };
     
+    // Красный пиксель посередине экрана
     lcd_image_set(&position, LCD_COLOR_GREEN); 
 }
 

@@ -16,6 +16,7 @@ typedef struct
     bool pressed;
     
 } button_t;
+// Попробовать реализовать весь модуль на одном таймере 
 
 // Инициализация модуля
 void button_init(void);
