@@ -3,7 +3,6 @@
 // Для инициализации модулей
 #include <io.h>
 #include <clk.h>
-#include <spi.h>
 #include "timer.h"
 #include <button.h>
 #include <lcd.h>
@@ -29,5 +28,6 @@ __noreturn void main(void)
     
     // Главный цикл
     for(MCU_IQR_ENABLE();;)
-        event_process();
+        event_process();  
+    /***  while (1);  ***/    
 }
