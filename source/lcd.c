@@ -12,8 +12,8 @@
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
 
 // Состояния пина DCRS 
-#define LCD_DCRS_DATA        1    // Данные
 #define LCD_DCRS_CMD         0    // Команда
+#define LCD_DCRS_DATA        1    // Данные
 
 // Команды для управления дисплеем
 #define LCD_CMD_SOFT_RESET              0x01         // Программный сброс
@@ -54,7 +54,7 @@ lcd_sleep_out()         - Выход из режима сна
 lcd_diplay_on()         - Включить дисплей
 */
 
-    /*** Регистры LCD ***/
+    /*** Регистры LCD ***/ /*
 // Регистр формата пикселя 5 + 6 + 5  ( 16 bit RGB )
 static const uint8_t lcd_pixel_format_reg = LCD_PIXEL_16_BIT;
 // Регистр доступа к памяти дисплея
@@ -65,13 +65,14 @@ static const uint8_t lcd_ic_reg[3] =
     0b00000000,
     0b00000000,
     LCD_IC3_DM_RGB | LCD_IC3_RM_RGB,
-};
+};*/
 
     /*** Предварительные обяъвления функций ***/
 static void lcd_reset(void);
-static void lcd_pixel_format_set(void);
-static void lcd_mac_set(void);
-static void lcd_ic_set(void);
+//static void lcd_pixel_format_set(void);
+//static void lcd_mac_set(void);
+//static void lcd_ic_set(void);
+static void lcd_configuration(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
 extern void test_init(void);
@@ -81,9 +82,10 @@ static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
 
 // События отправки команд
 static event_t lcd_reset_event            = EVENT_STATIC_INIT(lcd_reset);
-static event_t lcd_pixel_format_set_event = EVENT_STATIC_INIT(lcd_pixel_format_set);
-static event_t lcd_mac_set_event          = EVENT_STATIC_INIT(lcd_mac_set);
-static event_t lcd_ic_set_event           = EVENT_STATIC_INIT(lcd_ic_set);
+//static event_t lcd_pixel_format_set_event = EVENT_STATIC_INIT(lcd_pixel_format_set);
+//static event_t lcd_mac_set_event          = EVENT_STATIC_INIT(lcd_mac_set);
+//static event_t lcd_ic_set_event           = EVENT_STATIC_INIT(lcd_ic_set);
+static event_t lcd_configuration_event    = EVENT_STATIC_INIT(lcd_configuration);
 static event_t lcd_sleep_out_event        = EVENT_STATIC_INIT(lcd_sleep_out);
 static event_t lcd_diplay_on_event        = EVENT_STATIC_INIT(lcd_diplay_on);
 static event_t lcd_set_image_event        = EVENT_STATIC_INIT(test_init);
@@ -124,17 +126,23 @@ static void lcd_cmd_tx(const lcd_cmd_t *msg)
     io_dcrs_set(LCD_DCRS_CMD);
     
     // Отправка команды
-    spi_transmit((uint8_t *)&msg->cmd, 1);
+    spi_transmit((uint16_t *)&msg->cmd);
     
     // Если команда имеет параметры
     if (msg->size > 0)
     {
         // Установить вывод DCRS в "1" для отправки данных
         io_dcrs_set(LCD_DCRS_DATA);
-        
+
         // Передача данных
-        spi_transmit((uint8_t *)msg->data, msg->size);
+        spi_transmit((uint16_t *)&msg->data);
+        spi_transmit((uint16_t *)&msg->data + 1);
     }
+}
+
+static void lcd_configuration(void)
+{
+    
 }
 
 static void lcd_delay_timer_start(timer_interval_t interval)
@@ -144,7 +152,7 @@ static void lcd_delay_timer_start(timer_interval_t interval)
     // Установка флага задержки
     lcd_delay_flag = true;
 }
-
+/*
 // Установка контроля интерфейса 
 static void lcd_ic_set(void)
 {
@@ -170,7 +178,8 @@ static void lcd_mac_set(void)
     
     // Передача
     lcd_cmd_tx(&mac_reg);
-}
+}   */
+
 // Включить дисплей
 static void lcd_diplay_on(void)
 {
@@ -178,6 +187,9 @@ static void lcd_diplay_on(void)
     
     // Передача
     lcd_cmd_tx(&display_on);
+    
+    // Запуск таймера для задержки отправки следующей команды
+    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
 }
 
 // Выход из режима сна
@@ -201,32 +213,34 @@ static void lcd_reset(void)
     lcd_cmd_tx(&reset);
     
     // Запуск таймера для задержки отправки следующей команды
-    lcd_delay_timer_start(LCD_TIME_DELAY_5MS);
+    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
 }
 
 void lcd_init(void)
-{
+{   
     // Аппаратный сброс
     io_lcd_hard_reset();
-    // Запуск таймера для задержки отправки следующей команды
-    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
     
     // Включить подсветку дисплея
     io_led_on();
     
     // Добавляем события для инициализации в список
     list_insert(&lcd_cmd_init_list, &lcd_reset_event.item);
-    list_insert(&lcd_cmd_init_list, &lcd_pixel_format_set_event.item);
-    //list_insert(&lcd_cmd_init_list, &lcd_mac_set_event.item);
-    list_insert(&lcd_cmd_init_list, &lcd_ic_set_event.item);
+    
+    list_insert(&lcd_cmd_init_list, &lcd_configuration_event.item);
+    
     list_insert(&lcd_cmd_init_list, &lcd_sleep_out_event.item);
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);
     
     list_insert(&lcd_cmd_init_list, &lcd_set_image_event.item);
+    
+    // Запуск таймера для задержки отправки следующей команды
+    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
 }
 
 void lcd_image_set(const lcd_position_t *position, const uint16_t color)
 {
+   /*
     // Массив координат X (Big-Endian по 8 бит)
     const uint8_t x[4] = 
     {
@@ -250,17 +264,47 @@ void lcd_image_set(const lcd_position_t *position, const uint16_t color)
     {
         (uint8_t)(color >> 8),
         (uint8_t)(color)
-    };
+    }; */
+     
+    const uint16_t x[2] = 
+    {
+        position->x1,
+        position->x2
+    }; 
+    
+    const uint16_t y[2] = 
+    {
+        position->y1,
+        position->y2
+    }; 
     
     // Установка адреса началного и конечного столбца
     const lcd_cmd_t collum_set = LCD_CMD_INIT(LCD_CMD_COLLUM_SET, x);   
     // Установка адреса начальной и конечной строки
     const lcd_cmd_t line_set = LCD_CMD_INIT(LCD_CMD_LINE_SET, y);       
     // Команда записи цвета
-    const lcd_cmd_t color_set = LCD_CMD_INIT(LCD_CMD_MEMORY_SET, color_big_endian);               
+    const lcd_cmd_t color_set = LCD_CMD_INIT(LCD_CMD_MEMORY_SET, color);               
     
     // Передача команд
-    lcd_cmd_tx(&collum_set);
-    lcd_cmd_tx(&line_set);
-    lcd_cmd_tx(&color_set);
+    //lcd_cmd_tx(&collum_set);
+    //lcd_cmd_tx(&line_set);
+    //lcd_cmd_tx(&color_set);
+    
+    io_dcrs_set(LCD_DCRS_CMD);
+    spi_transmit((uint16_t *)&collum_set.cmd);
+    io_dcrs_set(LCD_DCRS_DATA);
+    spi_transmit(&position->x1);
+    spi_transmit(&position->x2);
+    
+    io_dcrs_set(LCD_DCRS_CMD);
+    spi_transmit((uint16_t *)&line_set.cmd);
+    io_dcrs_set(LCD_DCRS_DATA);
+    spi_transmit(&position->y1);
+    spi_transmit(&position->y2);
+    
+    io_dcrs_set(LCD_DCRS_CMD);
+    spi_transmit((uint16_t *)&color_set.cmd);
+    io_dcrs_set(LCD_DCRS_DATA);
+    spi_transmit(&color);
+    
 }
