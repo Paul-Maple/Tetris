@@ -1,12 +1,69 @@
-Software Reset (01h) - Программный сброс
+// 1. Software Reset
+0x01 // SWRESET
+delay(150);
 
-Sleep Out (11h) - Выход из спящего режима
+// 2. Exit Sleep Mode  
+0x11 // SLPOUT
+delay(120);
 
-Display ON (29h) - Включение дисплея
+// 3. Power Control A
+0xCB, 5 bytes: 0x39, 0x2C, 0x00, 0x34, 0x02
 
-Рекомендуемые команды настройки:
-Pixel Format Set (3Ah) - Установка формата пикселей
-55h или 66h
+// 4. Power Control B
+0xCF, 3 bytes: 0x00, 0xC1, 0x30
 
-Memory Access Control (36h) - Контроль доступа к памяти
+// 5. Driver timing control A
+0xE8, 3 bytes: 0x85, 0x00, 0x78
 
+// 6. Driver timing control B
+0xEA, 2 bytes: 0x00, 0x00
+
+// 7. Power on Sequence Control
+0xED, 4 bytes: 0x64, 0x03, 0x12, 0x81
+
+// 8. Pump ratio control
+0xF7, 1 byte: 0x20
+
+// 9. Power Control 1
+0xC0, 1 byte: 0x23 // VRH[5:0]
+
+// 10. Power Control 2  
+0xC1, 1 byte: 0x10 // SAP[2:0];BT[3:0]
+
+// 11. VCOM Control 1
+0xC5, 2 bytes: 0x3E, 0x28
+
+// 12. VCOM Control 2
+0xC7, 1 byte: 0x86
+
+// 13. Memory Access Control
+0x36, 1 byte: 0x48 // MX=1, MY=0, MV=1, ML=0, BGR=1, MH=0
+
+// 14. Pixel Format
+0x3A, 1 byte: 0x55 // 16 bits/pixel
+
+// 15. Frame Rate Control (Normal Mode)
+0xB1, 2 bytes: 0x00, 0x18
+
+// 16. Display Function Control
+0xB6, 3 bytes: 0x08, 0x82, 0x27
+
+// 17. Enable 3G
+0xF2, 1 byte: 0x00 // Disable 3G
+
+// 18. Gamma Set
+0x26, 1 byte: 0x01
+
+// 19. Positive Gamma Correction
+0xE0, 15 bytes: 
+0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1,
+0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00
+
+// 20. Negative Gamma Correction  
+0xE1, 15 bytes:
+0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31, 0xC1,
+0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F
+
+// 21. Display On
+0x29 // DISPON
+delay(50);
