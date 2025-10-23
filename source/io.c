@@ -75,6 +75,11 @@ void io_init(void)
     IO_SAVE(H);
 }
 
+void io_reset_gpioa_pin(uint8_t pin)
+{
+    GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, pin);
+}
+
 void io_lcd_hard_reset(void)
 {
     GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
@@ -98,7 +103,7 @@ void io_dcrs_set(const bool state)
         GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_DCRS_PIN);
 }
 
-void io_led_on()
+void io_led_on(void)
 {
     GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_LED_PIN);
 }
