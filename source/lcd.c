@@ -15,9 +15,13 @@ lcd_lcd_configuration() - Настройка LCD
 lcd_diplay_on()         - Включить дисплей
 */
 
+// Состояния пина DCRS 
+#define LCD_DCRS_CMD         0    // Команда
+#define LCD_DCRS_DATA        1    // Данные
+
 // Тики таймера для асинхронной задержки отправки команд
 //#define LCD_TIME_DELAY_1MS          TIMER_TICKS_MS(1)
-#define LCD_TIME_DELAY_5MS          TIMER_TICKS_MS(5)
+//#define LCD_TIME_DELAY_5MS          TIMER_TICKS_MS(5)
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
 
 // Команды для управления дисплеем
@@ -72,11 +76,11 @@ extern void test_init(void);
 static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
 
 // События отправки команд
-static event_t lcd_reset_event            = EVENT_STATIC_INIT(lcd_reset);
-static event_t lcd_configuration_event    = EVENT_STATIC_INIT(lcd_configuration);
-static event_t lcd_sleep_out_event        = EVENT_STATIC_INIT(lcd_sleep_out);
-static event_t lcd_diplay_on_event        = EVENT_STATIC_INIT(lcd_diplay_on);
-static event_t lcd_set_image_event        = EVENT_STATIC_INIT(test_init);
+static event_t lcd_reset_event         = EVENT_STATIC_INIT(lcd_reset);
+static event_t lcd_configuration_event = EVENT_STATIC_INIT(lcd_configuration);
+static event_t lcd_sleep_out_event     = EVENT_STATIC_INIT(lcd_sleep_out);
+static event_t lcd_diplay_on_event     = EVENT_STATIC_INIT(lcd_diplay_on);
+static event_t lcd_set_image_event     = EVENT_STATIC_INIT(test_init);
 
 // Флаг активной задержки отправки команд
 static bool lcd_delay_flag = false;
@@ -106,148 +110,145 @@ static void lcd_delay_cmd_tx(timer_t * timer)
 // Таймер для задержки отправки команд
 static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_delay_cmd_tx);
 
-/*
-// Отправка команды по SPI
-static void lcd_cmd_tx(const lcd_cmd_t *msg)
-{
-    ASSERT_NULL_PTR(msg);
-    
-    // Установить вывод DCRS в "0" для отправки команды
-    
-    
-    // Отправка команды
-    spi_transmit_cmd(msg->cmd);
-    
-    // Если команда имеет параметры
-    if (msg->size > 0)
-    {
-        // Установить вывод DCRS в "1" для отправки данных
-    
 
-        // Передача данных
-        spi_transmit_data((uint16_t )&msg->data);
-        spi_transmit_data((uint16_t )&msg->data + 1);
-    }
-}   */
+// Отправка команды по SPI
+static void lcd_cmd_tx(uint8_t cmd)
+{
+    // Установить вывод DCRS в "0" для отправки команды
+    io_dcrs_set(LCD_DCRS_CMD);
+    
+    // Передача
+    spi_transmit(cmd);
+}
+
+// Отправка данных по SPI
+static void lcd_data_tx(uint8_t data)
+{
+    // Установить вывод DCRS в "1" для отправки данных
+    io_dcrs_set(LCD_DCRS_DATA);
+    
+    // Передача
+    spi_transmit(data);
+}
 
 // Настройка регистров LCD для инициализации
 static void lcd_configuration(void)
 {
 	//power control A
-	spi_transmit_cmd(0xCB);
-	spi_transmit_data(0x39);
-	spi_transmit_data(0x2C);
-	spi_transmit_data(0x00);
-	spi_transmit_data(0x34);
-	spi_transmit_data(0x02);
+	lcd_cmd_tx(0xCB);
+	lcd_data_tx(0x39);
+	lcd_data_tx(0x2C);
+	lcd_data_tx(0x00);
+	lcd_data_tx(0x34);
+	lcd_data_tx(0x02);
 
 	//power control B
-	spi_transmit_cmd(0xCF);
-	spi_transmit_data(0x00);
-	spi_transmit_data(0xC1);
-	spi_transmit_data(0x30);
+	lcd_cmd_tx(0xCF);
+	lcd_data_tx(0x00);
+	lcd_data_tx(0xC1);
+	lcd_data_tx(0x30);
 
 	//driver timing control A
-	spi_transmit_cmd(0xE8);
-	spi_transmit_data(0x85);
-	spi_transmit_data(0x00);
-	spi_transmit_data(0x78);
+	lcd_cmd_tx(0xE8);
+	lcd_data_tx(0x85);
+	lcd_data_tx(0x00);
+	lcd_data_tx(0x78);
 
 	//driver timing control B
-	spi_transmit_cmd(0xEA);
-	spi_transmit_data(0x00);
-	spi_transmit_data(0x00);
+	lcd_cmd_tx(0xEA);
+	lcd_data_tx(0x00);
+	lcd_data_tx(0x00);
 
 	//power on sequence control
-	spi_transmit_cmd(0xED);
-	spi_transmit_data(0x64);
-	spi_transmit_data(0x03);
-	spi_transmit_data(0x12);
-	spi_transmit_data(0x81);
+	lcd_cmd_tx(0xED);
+	lcd_data_tx(0x64);
+	lcd_data_tx(0x03);
+	lcd_data_tx(0x12);
+	lcd_data_tx(0x81);
 
 	//pump ratio control
-	spi_transmit_cmd(0xF7);
-	spi_transmit_data(0x20);
+	lcd_cmd_tx(0xF7);
+	lcd_data_tx(0x20);
 
 	//power control,VRH[5:0]
-	spi_transmit_cmd(0xC0);
-	spi_transmit_data(0x23);
+	lcd_cmd_tx(0xC0);
+	lcd_data_tx(0x23);
 
 	//Power control,SAP[2:0];BT[3:0]
-	spi_transmit_cmd(0xC1);
-	spi_transmit_data(0x10);
+	lcd_cmd_tx(0xC1);
+	lcd_data_tx(0x10);
 
 	//vcm control
-	spi_transmit_cmd(0xC5);
-	spi_transmit_data(0x3E);
-	spi_transmit_data(0x28);
+	lcd_cmd_tx(0xC5);
+	lcd_data_tx(0x3E);
+	lcd_data_tx(0x28);
 
 	//vcm control 2
-	spi_transmit_cmd(0xC7);
-	spi_transmit_data(0x86);
+	lcd_cmd_tx(0xC7);
+	lcd_data_tx(0x86);
 
 	//memory access control
-	spi_transmit_cmd(0x36);
-	spi_transmit_data(0x48);
+	lcd_cmd_tx(0x36);
+	lcd_data_tx(0x48);
 
 	//pixel format
-	spi_transmit_cmd(0x3A);
-	spi_transmit_data(0x55);
+	lcd_cmd_tx(0x3A);
+	lcd_data_tx(0x55);
 
 	//frameration control,normal mode full colours
-	spi_transmit_cmd(0xB1);
-	spi_transmit_data(0x00);
-	spi_transmit_data(0x18);
+	lcd_cmd_tx(0xB1);
+	lcd_data_tx(0x00);
+	lcd_data_tx(0x18);
 
 	//display function control
-	spi_transmit_cmd(0xB6);
-	spi_transmit_data(0x08);
-	spi_transmit_data(0x82);
-	spi_transmit_data(0x27);
+	lcd_cmd_tx(0xB6);
+	lcd_data_tx(0x08);
+	lcd_data_tx(0x82);
+	lcd_data_tx(0x27);
 
 	//3gamma function disable
-	spi_transmit_cmd(0xF2);
-	spi_transmit_data(0x00);
+	lcd_cmd_tx(0xF2);
+	lcd_data_tx(0x00);
 
 	//gamma curve selected
-	spi_transmit_cmd(0x26);
-	spi_transmit_data(0x01);
+	lcd_cmd_tx(0x26);
+	lcd_data_tx(0x01);
 
 	//set positive gamma correction
-	spi_transmit_cmd(0xE0);
-	spi_transmit_data(0x0F);
-	spi_transmit_data(0x31);
-	spi_transmit_data(0x2B);
-	spi_transmit_data(0x0C);
-	spi_transmit_data(0x0E);
-	spi_transmit_data(0x08);
-	spi_transmit_data(0x4E);
-	spi_transmit_data(0xF1);
-	spi_transmit_data(0x37);
-	spi_transmit_data(0x07);
-	spi_transmit_data(0x10);
-	spi_transmit_data(0x03);
-	spi_transmit_data(0x0E);
-	spi_transmit_data(0x09);
-	spi_transmit_data(0x00);
+	lcd_cmd_tx(0xE0);
+	lcd_data_tx(0x0F);
+	lcd_data_tx(0x31);
+	lcd_data_tx(0x2B);
+	lcd_data_tx(0x0C);
+	lcd_data_tx(0x0E);
+	lcd_data_tx(0x08);
+	lcd_data_tx(0x4E);
+	lcd_data_tx(0xF1);
+	lcd_data_tx(0x37);
+	lcd_data_tx(0x07);
+	lcd_data_tx(0x10);
+	lcd_data_tx(0x03);
+	lcd_data_tx(0x0E);
+	lcd_data_tx(0x09);
+	lcd_data_tx(0x00);
 
 	//set negative gamma correction
-	spi_transmit_cmd(0xE1);
-	spi_transmit_data(0x00);
-	spi_transmit_data(0x0E);
-	spi_transmit_data(0x14);
-	spi_transmit_data(0x03);
-	spi_transmit_data(0x11);
-	spi_transmit_data(0x07);
-	spi_transmit_data(0x31);
-	spi_transmit_data(0xC1);
-	spi_transmit_data(0x48);
-	spi_transmit_data(0x08);
-	spi_transmit_data(0x0F);
-	spi_transmit_data(0x0C);
-	spi_transmit_data(0x31);
-	spi_transmit_data(0x36);
-	spi_transmit_data(0x0F);
+	lcd_cmd_tx(0xE1);
+	lcd_data_tx(0x00);
+	lcd_data_tx(0x0E);
+	lcd_data_tx(0x14);
+	lcd_data_tx(0x03);
+	lcd_data_tx(0x11);
+	lcd_data_tx(0x07);
+	lcd_data_tx(0x31);
+	lcd_data_tx(0xC1);
+	lcd_data_tx(0x48);
+	lcd_data_tx(0x08);
+	lcd_data_tx(0x0F);
+	lcd_data_tx(0x0C);
+	lcd_data_tx(0x31);
+	lcd_data_tx(0x36);
+	lcd_data_tx(0x0F);
 }
 
 static void lcd_delay_timer_start(timer_interval_t interval)
@@ -257,43 +258,11 @@ static void lcd_delay_timer_start(timer_interval_t interval)
     // Установка флага задержки
     lcd_delay_flag = true;
 }
-/*
-// Установка контроля интерфейса 
-static void lcd_ic_set(void)
-{
-    const lcd_cmd_t interface_control = LCD_CMD_INIT(LCD_CMD_INTERFACE_CONTROL_SET, lcd_ic_reg);
-    
-    // Передача
-    lcd_cmd_tx(&interface_control);
-}
-
-// Формат пикселя (16-bit)
-static void lcd_pixel_format_set(void)
-{
-    const lcd_cmd_t pixel_format = LCD_CMD_INIT(LCD_CMD_PIXEL_FORMAT_SET, lcd_pixel_format_reg);
-    
-    // Передача
-    lcd_cmd_tx(&pixel_format);
-}
-
-// Memory Access Control
-static void lcd_mac_set(void)
-{
-    const lcd_cmd_t mac_reg = LCD_CMD_INIT(LCD_CMD_MAC_SET, lcd_mac_reg);
-    
-    // Передача
-    lcd_cmd_tx(&mac_reg);
-}   */
 
 // Включить дисплей
 static void lcd_diplay_on(void)
 {
-    const lcd_cmd_t display_on = LCD_CMD_STATIC_INIT(LCD_CMD_DISPLAY_ON, NULL, 0);
-    
-    // Передача
-    //lcd_cmd_tx(&display_on);
-    
-    spi_transmit_cmd(display_on.cmd);
+    lcd_cmd_tx(LCD_CMD_DISPLAY_ON);
     
     // Запуск таймера для задержки отправки следующей команды
     lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
@@ -302,12 +271,7 @@ static void lcd_diplay_on(void)
 // Выход из режима сна
 static void lcd_sleep_out(void)
 {
-    const lcd_cmd_t sleep_out = LCD_CMD_STATIC_INIT(LCD_CMD_SLEEP_OUT, NULL, 0);
-    
-    // Передача
-    //lcd_cmd_tx(&sleep_out);
-    
-    spi_transmit_cmd(sleep_out.cmd);
+    lcd_cmd_tx(LCD_CMD_SLEEP_OUT);
     
     // Запуск таймера для задержки отправки следующей команды
     lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
@@ -316,19 +280,14 @@ static void lcd_sleep_out(void)
 // Программный сброс
 static void lcd_reset(void)
 {
-    const lcd_cmd_t reset = LCD_CMD_STATIC_INIT(LCD_CMD_SOFT_RESET, NULL, 0);
-    
-    // Передача
-    //lcd_cmd_tx(&reset);
-    
-    spi_transmit_cmd(reset.cmd);
+    lcd_cmd_tx(LCD_CMD_SOFT_RESET);
     
     // Запуск таймера для задержки отправки следующей команды
     lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
 }
 
 void lcd_init(void)
-{   
+{
     // Аппаратный сброс
     io_lcd_hard_reset();
     
@@ -338,9 +297,7 @@ void lcd_init(void)
     // Добавляем события для инициализации в список
     list_insert(&lcd_cmd_init_list, &lcd_reset_event.item);                     // Soft reset
     list_insert(&lcd_cmd_init_list, &lcd_sleep_out_event.item);                 // Sleep OUT
-    
     list_insert(&lcd_cmd_init_list, &lcd_configuration_event.item);             // Settings LCD
-    
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);                 // Display ON
     
     list_insert(&lcd_cmd_init_list, &lcd_set_image_event.item);                 // Set image
@@ -376,45 +333,21 @@ void lcd_image_set(const lcd_position_t *position, const uint16_t color)
         (uint8_t)(color >> 8),
         (uint8_t)(color)
     }; 
-    /*
-    const uint16_t x[2] = 
-    {
-        position->x1,
-        position->x2
-    }; 
     
-    const uint16_t y[2] = 
-    {
-        position->y1,
-        position->y2
-    }; 
+    lcd_cmd_tx(LCD_CMD_COLLUM_SET);
+    lcd_data_tx(x[0]);
+    lcd_data_tx(x[1]);
+    lcd_data_tx(x[2]);
+    lcd_data_tx(x[3]);
     
-    // Установка адреса началного и конечного столбца
-    const lcd_cmd_t collum_set = LCD_CMD_INIT(LCD_CMD_COLLUM_SET, x);   
-    // Установка адреса начальной и конечной строки
-    const lcd_cmd_t line_set = LCD_CMD_INIT(LCD_CMD_LINE_SET, y);       
-    // Команда записи цвета
-    const lcd_cmd_t color_set = LCD_CMD_INIT(LCD_CMD_MEMORY_SET, color);               
+    lcd_cmd_tx(LCD_CMD_LINE_SET);
+    lcd_data_tx(y[0]);
+    lcd_data_tx(y[1]);
+    lcd_data_tx(y[2]);
+    lcd_data_tx(y[3]);
     
-    // Передача команд
-    lcd_cmd_tx(&collum_set);
-    lcd_cmd_tx(&line_set);
-    lcd_cmd_tx(&color_set);
-    */
-    spi_transmit_cmd(LCD_CMD_COLLUM_SET);
-    spi_transmit_data(x[0]);
-    spi_transmit_data(x[1]);
-    spi_transmit_data(x[2]);
-    spi_transmit_data(x[3]);
-    
-    spi_transmit_cmd(LCD_CMD_LINE_SET);
-    spi_transmit_data(y[0]);
-    spi_transmit_data(y[1]);
-    spi_transmit_data(y[2]);
-    spi_transmit_data(y[3]);
-    
-    spi_transmit_cmd(LCD_CMD_MEMORY_SET);
-    spi_transmit_data(color_big_endian[0]);
-    spi_transmit_data(color_big_endian[1]);
+    lcd_cmd_tx(LCD_CMD_MEMORY_SET);
+    lcd_data_tx(color_big_endian[0]);
+    lcd_data_tx(color_big_endian[1]);
     
 }
