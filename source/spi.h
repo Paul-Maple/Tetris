@@ -3,13 +3,7 @@
 
 #include <typedefs.h>
 
-// Включение SPI
-void spi_enable(void);
-
-// Отключение SPI
-void spi_disable(void);
-
-// Передача одного байта данных
-void spi_transmit(const uint16_t *data);
+// Передача 8 бит данных
+void spi_transmit(const uint8_t data);
 
 #endif // __SPI_H
