@@ -48,7 +48,7 @@
 
         /*** Определение номеров функциональных пинов ***/
 // Cветодиод для теста
-#define IO_LED_PIN      13U
+#define IO_LED_PIN          13U
 
 // Пины LCD (Режим AF5)
 #define IO_LCD_SCL_PIN      1U                                                  /*** SCL,   Port A ***/
@@ -61,15 +61,15 @@
 #define IO_LCD_LED_PIN      2U                                                  /*** LED,   Port A ***/
 
 // Пины для отладки (Режим AF0)
-#define IO_JTMS_PIN     13U                                                     /*** JTAG pin ***/
-#define IO_JTCK_PIN     14U                                                     /*** JTAG pin ***/
-#define IO_JTDI_PIN     15U                                                     /*** JTAG pin ***/
+#define IO_JTMS_PIN         13U                                                 /*** JTAG pin ***/
+#define IO_JTCK_PIN         14U                                                 /*** JTAG pin ***/
+#define IO_JTDI_PIN         15U                                                 /*** JTAG pin ***/
 
 // Пины кнопок (Все порт С)
-#define IO_BUTTON_0     0U                                                      /***  ***/
-#define IO_BUTTON_1     1U                                                      /***  ***/
-#define IO_BUTTON_2     2U                                                      /***  ***/
-#define IO_BUTTON_3     3U                                                      /***  ***/
+#define IO_BUTTON_0         0U                                                  /***  ***/
+#define IO_BUTTON_1         1U                                                  /***  ***/
+#define IO_BUTTON_2         2U                                                  /***  ***/
+#define IO_BUTTON_3         3U                                                  /***  ***/
 
        /*** Сброс и установка значений в регистрах I/O ***/
 // Сброс регистров I/O
@@ -146,13 +146,13 @@
         /*** Установка итоговой конфигурации пинов ***/
 // Non connected pin
 #define IO_NC(pin)        IO_IN_PD(pin)
-
+        /* --- Input --- */
 // Input, Pull-Down
 #define IO_IN_PD(pin)                                                           \
     IO_IN_MODE_SET(pin);                                                        \
     IO_PULL_DOWN_SET(pin)
 
-        /* Output */
+        /* --- Output --- */
 // Output, Pull-Down
 #define IO_OUT_PD(pin)                                                          \
     IO_OUT_MODE_SET(pin);                                                       \
@@ -166,14 +166,14 @@
 // Output LOW, Pull-Up
 #define IO_OUT_LOW_PD(pin)                                                      \
     IO_OUT_PD(pin);                                                             \
-    IO_OUT_LOW_SET(pin)                                                         \
+    IO_OUT_LOW_SET(pin)
 
 // Output HIGH, Pull-Up
 #define IO_OUT_HIGH_PU(pin)                                                     \
     IO_OUT_PU(pin);                                                             \
-    IO_OUT_HIGH_SET(pin)                                                        \
+    IO_OUT_HIGH_SET(pin)
 
-        /* Alternate function */
+        /* --- Alternate function --- */
 // Alternate function           
 #define IO_AF(pin, number)                                                      \
     IO_AF_MODE_SET(pin);                                                        \
@@ -183,6 +183,11 @@
 #define IO_AF_PD(pin, number)                                                   \
     IO_AF(pin, number);                                                         \
     IO_PULL_DOWN_SET(pin)
+
+// Alternate function, Output Low, Pull-Down  
+#define IO_AF_LOW_PD(pin, number)                                               \
+        IO_AF_PD(pin, number);                                                  \
+        IO_OUT_LOW_SET(pin)
 
 // Alternate function, Pull-Up          
 #define IO_AF_PU(pin, number)                                                   \
@@ -202,6 +207,9 @@ void io_nss_set(const bool state);
 void io_dcrs_set(const bool state);
 
 // Включить подсветку дисплея
-void io_led_on();
+void io_led_on(void);
+
+// Сбросить пин (GPIOA)
+void io_reset_gpioa_pin(uint8_t pin);
 
 #endif // __GPIO_H
