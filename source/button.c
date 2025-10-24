@@ -15,6 +15,15 @@
     .pressed = false                                                            \
 }
 
+static void button_switch_state_notice(button_t *button, bool state)
+{
+    ASSERT_NULL_PTR(button);
+    // Оповещение модулей
+    // module_1_button_switch_state_notice(button, state);
+    // module_2_button_switch_state_notice(button, state);
+    // и т.д.
+}
+
 // Обработчик события нажатия кнопки
 /* Вызываются как callback у таймера в случае, *
  * если таймер дребезга контактов отработал    */
@@ -32,9 +41,8 @@ static void button_pressed_event_cb(timer_t *timer)
         button->pressed = true; 
         
         // Оповещение модулей о нажатии кнопки
-        // module_1_button_pressed_notice();
-        // module_2_notice();
-        // и т.д.
+        button_switch_state_notice(button, button->pressed);
+        
         return;
     }
     
@@ -45,7 +53,7 @@ static void button_pressed_event_cb(timer_t *timer)
         button->pressed = false;
         
         // Оповещение модулей об отпускании кнопки
-        // 
+        button_switch_state_notice(button, button->pressed);
     }
 }
 
