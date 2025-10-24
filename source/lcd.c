@@ -21,7 +21,7 @@ lcd_diplay_on()         - Включить дисплей
 
 // Тики таймера для асинхронной задержки отправки команд
 //#define LCD_TIME_DELAY_1MS          TIMER_TICKS_MS(1)
-//#define LCD_TIME_DELAY_5MS          TIMER_TICKS_MS(5)
+#define LCD_TIME_DELAY_50MS          TIMER_TICKS_MS(50)
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
 
 // Команды для управления дисплеем
@@ -86,7 +86,8 @@ static event_t lcd_set_image_event     = EVENT_STATIC_INIT(test_init);
 static bool lcd_delay_flag = false;
 
 // Отправка команд после задержки
-/* Вызывается как callback у сработавшего таймера задержки */
+/* Вызывается как callback у сработавшего таймера задержки *
+ * или явно, в случае если задерка для отправки не нужна   */
 static void lcd_delay_cmd_tx(timer_t * timer)
 {
     // Сброс флага задержки
@@ -110,9 +111,8 @@ static void lcd_delay_cmd_tx(timer_t * timer)
 // Таймер для задержки отправки команд
 static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_delay_cmd_tx);
 
-
 // Отправка команды по SPI
-static void lcd_cmd_tx(uint8_t cmd)
+static void lcd_cmd_tx(const uint8_t cmd)
 {
     // Установить вывод DCRS в "0" для отправки команды
     io_dcrs_set(LCD_DCRS_CMD);
@@ -122,7 +122,7 @@ static void lcd_cmd_tx(uint8_t cmd)
 }
 
 // Отправка данных по SPI
-static void lcd_data_tx(uint8_t data)
+static void lcd_data_tx(const uint8_t data)
 {
     // Установить вывод DCRS в "1" для отправки данных
     io_dcrs_set(LCD_DCRS_DATA);
@@ -131,10 +131,20 @@ static void lcd_data_tx(uint8_t data)
     spi_transmit(data);
 }
 
+// Отправка данных по SPI
+static void lcd_color_tx(const uint16_t color, const uint32_t size)
+{
+    // Установить вывод DCRS в "1" для отправки данных
+    io_dcrs_set(LCD_DCRS_DATA);
+    
+    // Передача
+    spi_transmit_color(color, size);
+}
+
 // Настройка регистров LCD для инициализации
 static void lcd_configuration(void)
 {
-	//power control A
+    //power control A
 	lcd_cmd_tx(0xCB);
 	lcd_data_tx(0x39);
 	lcd_data_tx(0x2C);
@@ -251,6 +261,7 @@ static void lcd_configuration(void)
 	lcd_data_tx(0x0F);
 }
 
+// Запуск таймера задержки отправки команд и данных по SPI
 static void lcd_delay_timer_start(timer_interval_t interval)
 {
     // Запуск таймера
@@ -265,7 +276,7 @@ static void lcd_diplay_on(void)
     lcd_cmd_tx(LCD_CMD_DISPLAY_ON);
     
     // Запуск таймера для задержки отправки следующей команды
-    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
+    lcd_delay_timer_start(LCD_TIME_DELAY_50MS);
 }
 
 // Выход из режима сна
@@ -300,54 +311,36 @@ void lcd_init(void)
     list_insert(&lcd_cmd_init_list, &lcd_configuration_event.item);             // Settings LCD
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);                 // Display ON
     
+    // TODO: Убрать отрисовку
     list_insert(&lcd_cmd_init_list, &lcd_set_image_event.item);                 // Set image
     
     // Запуск таймера для задержки отправки следующей команды
-    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
+    lcd_delay_timer_start(LCD_TIME_DELAY_50MS);
 }
 
+// TODO: переименовать void lcd_draw_image()
 void lcd_image_set(const lcd_position_t *position, const uint16_t color)
 {
-   
-    // Массив координат X (Big-Endian по 8 бит)
-    const uint8_t x[4] = 
-    {
-        (uint8_t)(position->x1 >> 8),
-        (uint8_t)(position->x1),
-        (uint8_t)(position->x2 >> 8),
-        (uint8_t)(position->x2)
-    };
-    
-    // Массив координат Y (Big-Endian по 8 бит)
-    const uint8_t y[4] = 
-    {
-        (uint8_t)(position->y1 >> 8),
-        (uint8_t)(position->y1),
-        (uint8_t)(position->y2 >> 8),
-        (uint8_t)(position->y2)
-    };
-    
-    // Массив цвета (Big-Endian по 8 бит)
-    const uint8_t color_big_endian[2] = 
-    {
-        (uint8_t)(color >> 8),
-        (uint8_t)(color)
-    }; 
-    
+    // Отправка координат X
     lcd_cmd_tx(LCD_CMD_COLLUM_SET);
-    lcd_data_tx(x[0]);
-    lcd_data_tx(x[1]);
-    lcd_data_tx(x[2]);
-    lcd_data_tx(x[3]);
+    lcd_data_tx(position->x1 >> 8);
+    lcd_data_tx(position->x1);
+    lcd_data_tx(position->x2 >> 8);
+    lcd_data_tx(position->x2);
     
+    // Отправка координат Y
     lcd_cmd_tx(LCD_CMD_LINE_SET);
-    lcd_data_tx(y[0]);
-    lcd_data_tx(y[1]);
-    lcd_data_tx(y[2]);
-    lcd_data_tx(y[3]);
+    lcd_data_tx(position->y1 >> 8);
+    lcd_data_tx(position->y1);
+    lcd_data_tx(position->y2 >> 8);
+    lcd_data_tx(position->y2);
     
+    // Заливка области одним цветом
     lcd_cmd_tx(LCD_CMD_MEMORY_SET);
-    lcd_data_tx(color_big_endian[0]);
-    lcd_data_tx(color_big_endian[1]);
     
+    // Размер области
+    uint32_t size = (uint32_t)((position->x2 - position->x1) * (position->y2 - position->y1));
+    
+    // Отправка цвета области
+    lcd_color_tx(color, size);
 }
