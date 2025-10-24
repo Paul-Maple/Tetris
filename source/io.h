@@ -53,8 +53,8 @@
 // Пины LCD (Режим AF5)
 #define IO_LCD_SCL_PIN      1U                                                  /*** SCL,   Port A ***/
 #define IO_LCD_SDA_PIN      7U                                                  /*** SDA,   Port A ***/
+#define IO_LCD_CSX_PIN      4U                                                  /*** CSX,   Port A ***/
 // Пины LCD (Режим OUT)
-#define IO_LCD_CSX_PIN      5U                                                  /*** CSX,   Port A ***/
 #define IO_LCD_RESX_PIN     0U                                                  /*** RESET, Port A ***/
 #define IO_LCD_DCRS_PIN     3U                                                  /*** DC/RS, Port A ***/
 // TODO: Реализовать подсветку на ШИМе
@@ -146,6 +146,7 @@
         /*** Установка итоговой конфигурации пинов ***/
 // Non connected pin
 #define IO_NC(pin)        IO_IN_PD(pin)
+
         /* --- Input --- */
 // Input, Pull-Down
 #define IO_IN_PD(pin)                                                           \
@@ -184,11 +185,6 @@
     IO_AF(pin, number);                                                         \
     IO_PULL_DOWN_SET(pin)
 
-// Alternate function, Output Low, Pull-Down  
-#define IO_AF_LOW_PD(pin, number)                                               \
-        IO_AF_PD(pin, number);                                                  \
-        IO_OUT_LOW_SET(pin)
-
 // Alternate function, Pull-Up          
 #define IO_AF_PU(pin, number)                                                   \
     IO_AF(pin, number);                                                         \
@@ -201,15 +197,9 @@ void io_init(void);
 void io_lcd_hard_reset(void);
 
 // Установка состояния пина DCRS
-void io_nss_set(const bool state);
-
-// Установка состояния пина DCRS
 void io_dcrs_set(const bool state);
 
 // Включить подсветку дисплея
 void io_led_on(void);
-
-// Сбросить пин (GPIOA)
-void io_reset_gpioa_pin(uint8_t pin);
 
 #endif // __GPIO_H
