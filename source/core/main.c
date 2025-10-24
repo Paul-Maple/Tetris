@@ -24,8 +24,6 @@ __noreturn void main(void)
     led_init();
     lpm_init();
     
-    //test_init();
-    
     // Главный цикл
     for(MCU_IQR_ENABLE();;)
         event_process();  
