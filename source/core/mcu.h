@@ -44,4 +44,9 @@
     /*** Инициализация модуля ***/
 void mcu_init(void);
 
+// Установить умножитель частоты
+void mcu_set_pll(void);
+// Сбросить умножитель частоты
+void mcu_reset_pll(void);
+
 #endif // __MCU_H

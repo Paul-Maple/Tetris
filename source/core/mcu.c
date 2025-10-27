@@ -14,11 +14,34 @@ void mcu_init(void)
     // Включить тактирование GPIO
     RCC->AHB2ENR = RCC_AHB2ENR_GPIOAEN | RCC_AHB2ENR_GPIOBEN |                  // Порты А, В
                    RCC_AHB2ENR_GPIOCEN | RCC_AHB2ENR_GPIOHEN;                   // Порты С, Н
-    /*
-    // Настройка системной частоты ( SYSCLOCK = MSI = 32 MHz )
-    RCC->CR &= ~RCC_CR_MSION;
-    RCC->CR = RCC_CR_MSIRGSEL;
-    RCC->CR = RCC_CR_MSIRANGE_10;
-    RCC->CR |= RCC_CR_MSION;
-    */
+    
+        /* Настройка PLL */
+    // Выкл. PLL
+    RCC->CR &= ~RCC_CR_PLLON;
+    // Вход PLL - MSI
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_MSI;
+    
+    // f(VCO clock) = f(PLL clock input) * (PLLN / PLLM) = 4 / 1 * 20 = 80 MHz
+    RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLM_0 | RCC_PLLCFGR_PLLM_1 | RCC_PLLCFGR_PLLM_2); // PLLM = 1
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLN_2 | RCC_PLLCFGR_PLLN_4;                         // PLLN = 20
+    // f (PLLCLK) = VCO / PLLR = 80 / 2 = 40 MHz
+    RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLR_0 | RCC_PLLCFGR_PLLR_1);                      // PLLR = 2
+}
+
+void mcu_set_pll(void)
+{
+    // Вкл. PLL
+    RCC->CR |= RCC_CR_PLLON;
+    // Вкл. выход PLLCLK
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
+    // PLL selected as system clock
+    RCC->CFGR |= RCC_CFGR_SW_0 | RCC_CFGR_SW_1;
+}
+
+void mcu_reset_pll(void)
+{
+    // MSI selected as system clock
+    RCC->CFGR &= ~(RCC_CFGR_SW_0 | RCC_CFGR_SW_1);
+    // Выкл. PLL
+    RCC->CR &= ~RCC_CR_PLLON;
 }
