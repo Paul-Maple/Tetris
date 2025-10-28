@@ -24,6 +24,7 @@ static void button_switch_state_notice(button_t *button, bool state)
     // и т.д.
 }
 
+extern void test_3(void);
 // Обработчик события нажатия кнопки
 /* Вызываются как callback у таймера в случае, *
  * если таймер дребезга контактов отработал    */
@@ -39,10 +40,8 @@ static void button_pressed_event_cb(timer_t *timer)
     {
         // Установка флага нажатия кнопки
         button->pressed = true; 
-        
         // Оповещение модулей о нажатии кнопки
         button_switch_state_notice(button, button->pressed);
-        
         return;
     }
     
@@ -51,7 +50,6 @@ static void button_pressed_event_cb(timer_t *timer)
     {
         // Установка флага: кнопка не нажата
         button->pressed = false;
-        
         // Оповещение модулей об отпускании кнопки
         button_switch_state_notice(button, button->pressed);
     }
