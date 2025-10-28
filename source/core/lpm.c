@@ -1,5 +1,5 @@
 #include "lpm.h"
-#include <mcu.h>
+#include "mcu.h"
 
 // Инициализация режима энергосбережения
 void lpm_init(void)
