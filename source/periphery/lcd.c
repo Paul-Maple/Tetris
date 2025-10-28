@@ -1,7 +1,7 @@
 #include "lcd.h"
 #include <lcd_reg.h>
 #include "spi.h"
-#include "io.h"
+#include <io.h>
 #include <timer.h>
 #include <event.h>
 #include <test.h>
@@ -52,7 +52,8 @@ lcd_diplay_on()         - Включить дисплей
 //  Инициализация элемента цепочки команд
 #define LCD_CMD_INIT(cmd, data)     LCD_CMD_STATIC_INIT(cmd, &(data), sizeof(data))
 
-    /*** Регистры LCD ***/ /*
+    /*** Регистры LCD ***/ 
+/*
 // Регистр формата пикселя 5 + 6 + 5  ( 16 bit RGB )
 static const uint8_t lcd_pixel_format_reg = LCD_PIXEL_16_BIT;
 // Регистр доступа к памяти дисплея
@@ -70,7 +71,9 @@ static void lcd_reset(void);
 static void lcd_configuration(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
-extern void test_init(void);
+
+extern void test_1(void);
+extern void test_2(void);
 
 // Список команд для инициализации
 static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
@@ -80,7 +83,9 @@ static event_t lcd_reset_event         = EVENT_STATIC_INIT(lcd_reset);
 static event_t lcd_configuration_event = EVENT_STATIC_INIT(lcd_configuration);
 static event_t lcd_sleep_out_event     = EVENT_STATIC_INIT(lcd_sleep_out);
 static event_t lcd_diplay_on_event     = EVENT_STATIC_INIT(lcd_diplay_on);
-static event_t lcd_set_image_event     = EVENT_STATIC_INIT(test_init);
+static event_t lcd_clear_event         = EVENT_STATIC_INIT(lcd_clear);
+static event_t lcd_set_image1_event    = EVENT_STATIC_INIT(test_1);
+static event_t lcd_set_image2_event    = EVENT_STATIC_INIT(test_2);
 
 // Флаг активной задержки отправки команд
 static bool lcd_delay_flag = false;
@@ -199,7 +204,7 @@ static void lcd_configuration(void)
 
 	//memory access control
 	lcd_cmd_tx(0x36);
-	lcd_data_tx(0x48);
+	lcd_data_tx(0x08);
 
 	//pixel format
 	lcd_cmd_tx(0x3A);
@@ -312,14 +317,15 @@ void lcd_init(void)
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);                 // Display ON
     
     // TODO: Убрать отрисовку
-    list_insert(&lcd_cmd_init_list, &lcd_set_image_event.item);                 // Set image
+    list_insert(&lcd_cmd_init_list, &lcd_clear_event.item);                     // LCD clear
+    list_insert(&lcd_cmd_init_list, &lcd_set_image1_event.item);                // Set image 1
+    list_insert(&lcd_cmd_init_list, &lcd_set_image2_event.item);                // Set image 2
     
     // Запуск таймера для задержки отправки следующей команды
     lcd_delay_timer_start(LCD_TIME_DELAY_50MS);
 }
 
-// TODO: переименовать void lcd_draw_image()
-void lcd_image_set(const lcd_position_t *position, const uint16_t color)
+void lcd_draw_image(const lcd_position_t *position, const uint16_t color)
 {
     // Отправка координат X
     lcd_cmd_tx(LCD_CMD_COLLUM_SET);
@@ -338,9 +344,20 @@ void lcd_image_set(const lcd_position_t *position, const uint16_t color)
     // Заливка области одним цветом
     lcd_cmd_tx(LCD_CMD_MEMORY_SET);
     
-    // Размер области
-    uint32_t size = (uint32_t)((position->x2 - position->x1) * (position->y2 - position->y1));
-    
     // Отправка цвета области
-    lcd_color_tx(color, size);
+    lcd_color_tx(color, (uint32_t)((position->x2 - position->x1 + 1) * (position->y2 - position->y1 + 1)));
+}
+
+void lcd_clear(void)
+{
+    // Установка координат
+    const lcd_position_t position = 
+    {
+        .x1 = 0,
+        .x2 = 239,
+        .y1 = 0,
+        .y2 = 319
+    };
+    
+    lcd_draw_image(&position, LCD_COLOR_WHITE); 
 }

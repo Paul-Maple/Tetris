@@ -1,6 +1,9 @@
 #include "spi.h"
 #include <nvic.h>
-#include "io.h"
+#include <io.h>
+
+/*** Частота CLK = 15 MHz ***/
+// TODO: Попробовать повысить частоту
 
 // Макросы для настрйки регистра DS для передачи 8 или 16 бит
 #define SPI_DS_8_BIT        (SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2)
@@ -53,7 +56,7 @@ void spi_transmit(const uint8_t data)
     // SPI1->DR = data;
     
     // Ожидание освобождения TxFIFO
-    //while (!(SPI_SR_FTLVL_0 | SPI_SR_FTLVL_1));
+    while (!(SPI_SR_FTLVL_0 | SPI_SR_FTLVL_1));
     // Ожидание окончания передачи
     while (SPI1->SR & SPI_SR_BSY);
     
@@ -63,6 +66,9 @@ void spi_transmit(const uint8_t data)
 
 void spi_transmit_color(const uint16_t color, uint32_t size)
 {
+    // Включить умножитель системной частоты
+    mcu_set_pll();
+    
     // Включить SPI
     spi_enable(SPI_DS_16_BIT);
     
@@ -75,10 +81,13 @@ void spi_transmit_color(const uint16_t color, uint32_t size)
     }
     
     // Ожидание освобождения TxFIFO
-    //while (!(SPI_SR_FTLVL_0 | SPI_SR_FTLVL_1));
+    while (!(SPI_SR_FTLVL_0 | SPI_SR_FTLVL_1));
     // Ожидание окончания передачи
     while (SPI1->SR & SPI_SR_BSY);
     
     // Отключить SPI
     spi_disable();
+    
+    // Отключить умножитель системной частоты
+    mcu_reset_pll();
 }
