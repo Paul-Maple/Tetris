@@ -30,7 +30,7 @@ typedef struct
 void lcd_init(void);
 
 // Установка изображения
-void lcd_draw_image(const lcd_position_t *position, const uint16_t color);
+void lcd_draw_image(const lcd_position_t position, const uint16_t color);
 
 // Очистка дисплея (Заливка белым цветом)
 void lcd_clear(void);
