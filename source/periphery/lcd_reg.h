@@ -50,5 +50,3 @@
     /*  Pixel format register */
 // Формат пикселя
 #define LCD_PIXEL_16_BIT       0x55
-#define LCD_PIXEL_18_BIT       0x50
-
