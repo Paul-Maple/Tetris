@@ -17,7 +17,7 @@ void test_1(void)
         .y2 = 260
     };
     
-    lcd_draw_image(&position, LCD_COLOR_RED);     
+    lcd_draw_image(position, LCD_COLOR_RED);     
 }
 
 void test_2(void)
@@ -31,7 +31,7 @@ void test_2(void)
         .y2 = 80
     };
     
-    lcd_draw_image(&position, LCD_COLOR_GREEN); 
+    lcd_draw_image(position, LCD_COLOR_GREEN); 
 }
 
 void test_3(void)
@@ -45,5 +45,5 @@ void test_3(void)
         .y2 = 50
     };
     
-    lcd_draw_image(&position, LCD_COLOR_BLUE); 
+    lcd_draw_image(position, LCD_COLOR_BLUE); 
 }

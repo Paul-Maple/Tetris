@@ -53,7 +53,6 @@ void spi_transmit(const uint8_t data)
     // Запись в регистр данных (8-ми битный доступ)
     /* Без приведения происходит передача дополнительных 8-ми лишних нулевых бит */
     *(( __IO uint8_t * ) &SPI1->DR) = data;
-    // SPI1->DR = data;
     
     // Ожидание освобождения TxFIFO
     while (!(SPI_SR_FTLVL_0 | SPI_SR_FTLVL_1));
