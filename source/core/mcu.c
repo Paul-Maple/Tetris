@@ -11,9 +11,13 @@ void mcu_init(void)
     // Тактирование регистра SYSCFG для настройки прерываний EXTI
     RCC->APB2ENR = RCC_APB2ENR_SYSCFGEN;     
     
-    // Включить тактирование GPIO
+    // Включить тактирование GPIO и RNG
     RCC->AHB2ENR = RCC_AHB2ENR_GPIOAEN | RCC_AHB2ENR_GPIOBEN |                  // Порты А, В
-                   RCC_AHB2ENR_GPIOCEN | RCC_AHB2ENR_GPIOHEN;                   // Порты С, Н
+                   RCC_AHB2ENR_GPIOCEN | RCC_AHB2ENR_GPIOHEN |                  // Порты С, Н
+                   RCC_AHB2ENR_RNGEN;                                           // Генератор случайных чисел
+    
+    // Источник тактирования RNG - MSI
+    RCC->CCIPR = RCC_CCIPR_CLK48SEL_0 | RCC_CCIPR_CLK48SEL_1;
     
         /* Настройка PLL */
     // Выкл. PLL
@@ -24,8 +28,8 @@ void mcu_init(void)
     
     // f(VCO clock) = f(PLL clock input) * (PLLN / PLLM) = 4 MHz / 1 * 30 = 120 MHz
     RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLM_0 | RCC_PLLCFGR_PLLM_1 | RCC_PLLCFGR_PLLM_2);    // PLLM = 1
-    RCC->PLLCFGR |= RCC_PLLCFGR_PLLN_1 | RCC_PLLCFGR_PLLN_2 | 
-                    RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_4 |                           // PLLN = 30
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLN_1 | RCC_PLLCFGR_PLLN_2 |                           // PLLN = 30
+                    RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_4 |
                     RCC_PLLCFGR_PLLR_0;                                                 // PLLR = 4                                          
     // f (PLLCLK) = VCO / PLLR = 120 MHz / 4 = 30 MHz
 }
