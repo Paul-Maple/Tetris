@@ -3,15 +3,23 @@
 
 #include <typedefs.h>
 
+/*** Разрешение дисплея 240x320 ***/
+
 // Перечисление цветов (Формат: 16 бит)
 enum
 {
-    LCD_COLOR_WHITE = 0xFFFF,
-    LCD_COLOR_BLACK = 0x0000,
-    LCD_COLOR_RED   = 0xF800,
-    LCD_COLOR_GREEN = 0x07E0,
-    LCD_COLOR_BLUE  = 0x001F
-    // TODO: Дописать цвета
+    LCD_COLOR_WHITE  = 0xFFFF,
+    LCD_COLOR_BLACK  = 0x0000,
+    LCD_COLOR_GRAY   = 0x8410,
+    
+    LCD_COLOR_RED    = 0xF800,
+    LCD_COLOR_GREEN  = 0x07E0,
+    LCD_COLOR_BLUE   = 0x001F,
+    LCD_COLOR_YELLOW = 0xFFE0,
+    LCD_COLOR_ORANGE = 0xFC00,
+    LCD_COLOR_CYAN   = 0x07FF,
+    LCD_COLOR_PURPLE = 0x8010,
+    LCD_COLOR_PINK   = 0xF810,
 };
 
 // Структура координат записи
