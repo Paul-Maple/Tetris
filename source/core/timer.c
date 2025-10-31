@@ -20,7 +20,6 @@ typedef uint16_t timer_register_t;
 #define TIMER_INTERVAL_OVF      (TIMER_INTERVAL_TOP - (timer_interval_t)TIMER_REGISTER_MAX)
 
     /*** Аппаратный таймер LPTIM1 ***/     
-// Оповещение модуля led о смене источника тактирования
 void timer_clk_notice(void)
 {
     // Сбросить источник тактирования таймера
