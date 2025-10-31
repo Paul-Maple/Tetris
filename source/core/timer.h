@@ -92,4 +92,7 @@ void timer_processing_raised(void);
 // Обработчик прерывания аппаратного таймера LPTIM1
 void timer_lptim1_isr(void);
 
+// Оповещение модуля led о смене источника тактирования
+void timer_clk_notice(void);
+
 #endif // __TIMER_H
