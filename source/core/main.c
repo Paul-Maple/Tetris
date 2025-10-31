@@ -9,7 +9,7 @@
 #include <led.h>
 #include "lpm.h"
 #include "event.h"
-
+#include <rng.h>
 //#include "test.h"
 
 __noreturn void main(void)
@@ -23,6 +23,7 @@ __noreturn void main(void)
     lcd_init();
     led_init();
     lpm_init();
+    rng_init();
     
     // Главный цикл
     for(MCU_IQR_ENABLE();;)
