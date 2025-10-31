@@ -55,8 +55,7 @@ static void lcd_configuration(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
 // TODO: Удалить тестовую отрисовку
-extern void test_1(void);
-extern void test_2(void);
+extern void tetris_init(void);
 
 // Список команд для инициализации
 static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
@@ -66,10 +65,7 @@ static event_t lcd_reset_event         = EVENT_STATIC_INIT(lcd_reset);
 static event_t lcd_configuration_event = EVENT_STATIC_INIT(lcd_configuration);
 static event_t lcd_sleep_out_event     = EVENT_STATIC_INIT(lcd_sleep_out);
 static event_t lcd_diplay_on_event     = EVENT_STATIC_INIT(lcd_diplay_on);
-static event_t lcd_clear_event         = EVENT_STATIC_INIT(lcd_clear);
-// TODO: Удалить тестовую отрисовку
-static event_t lcd_set_image1_event    = EVENT_STATIC_INIT(test_1);
-static event_t lcd_set_image2_event    = EVENT_STATIC_INIT(test_2);
+static event_t lcd_start_game_event    = EVENT_STATIC_INIT(tetris_init);
 
 // Флаг активной задержки отправки команд
 static bool lcd_delay_flag = false;
@@ -191,11 +187,8 @@ void lcd_init(void)
     list_insert(&lcd_cmd_init_list, &lcd_sleep_out_event.item);                 // Sleep OUT
     list_insert(&lcd_cmd_init_list, &lcd_configuration_event.item);             // Settings LCD
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);                 // Display ON
-    list_insert(&lcd_cmd_init_list, &lcd_clear_event.item);                     // LCD clear
     
-    // TODO: Убрать отрисовку
-    list_insert(&lcd_cmd_init_list, &lcd_set_image1_event.item);                // Set image 1
-    list_insert(&lcd_cmd_init_list, &lcd_set_image2_event.item);                // Set image 2
+    list_insert(&lcd_cmd_init_list, &lcd_start_game_event.item);                // Start
     
     // Запуск таймера для задержки отправки следующей команды
     lcd_delay_timer_start(LCD_TIME_DELAY_50MS);
