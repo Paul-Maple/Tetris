@@ -1,0 +1,11 @@
+// Настройки препроцессора
+
+$PROJ_DIR$\source\device\CMSIS
+$PROJ_DIR$\source\device\L4
+$PROJ_DIR$\source\common
+$PROJ_DIR$\source\include
+$PROJ_DIR$\source\core
+$PROJ_DIR$\source\test
+$PROJ_DIR$\source\periphery
+$PROJ_DIR$\source\game
+$PROJ_DIR$\source
