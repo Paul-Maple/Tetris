@@ -23,10 +23,11 @@ void mcu_init(void)
     // Выкл. PLL
     RCC->CR &= ~RCC_CR_PLLON;
     while (RCC->CR & RCC_CR_PLLRDY);
+    
     // Вход PLL - MSI
     RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_MSI;
     
-    // f(VCO clock) = f(PLL clock input) * (PLLN / PLLM) = 4 MHz / 1 * 30 = 120 MHz
+    // f(VCO clock) = f(PLL clock input) * (PLLN / PLLM) = ( 4 MHz / 1 ) * 30 = 120 MHz
     RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLM_0 | RCC_PLLCFGR_PLLM_1 | RCC_PLLCFGR_PLLM_2);    // PLLM = 1
     RCC->PLLCFGR |= RCC_PLLCFGR_PLLN_1 | RCC_PLLCFGR_PLLN_2 |                           // PLLN = 30
                     RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_4 |
