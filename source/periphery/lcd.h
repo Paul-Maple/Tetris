@@ -18,7 +18,7 @@ enum
     LCD_COLOR_YELLOW = 0xFFE0,
     LCD_COLOR_ORANGE = 0xFC00,
     LCD_COLOR_CYAN   = 0x07FF,
-    LCD_COLOR_PURPLE = 0x8010,
+    LCD_COLOR_PURPLE = 0xBB59,
     LCD_COLOR_PINK   = 0xF810,
 };
 
@@ -39,6 +39,9 @@ void lcd_init(void);
 
 // Установка изображения
 void lcd_draw_image(const lcd_position_t position, const uint16_t color);
+
+// Прочитать цвет из памяти дисплея
+void lcd_read_color(const lcd_position_t position, uint16_t *color);
 
 // Очистка дисплея (Заливка белым цветом)
 void lcd_clear(void);
