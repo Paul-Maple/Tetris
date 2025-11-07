@@ -23,7 +23,5 @@ lcd_position_t
 lcd_cmd_next_cb
 lcd_color_t
 
-	tetris_current_figure_t
-tetris_figure_type_t
 tetris_figure_t
-draw_figure_cb
+tetris_offset_t
