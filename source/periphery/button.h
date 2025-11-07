@@ -10,10 +10,12 @@
 // Перечисление функциональных имён кнопок
 typedef enum
 {
-    BUTTON_NAME_ROTATE,
+    /* Порядок имён НЕ МЕНЯТЬ!!!! */
     BUTTON_NAME_DOWN,
+    BUTTON_NAME_RIGHT,
     BUTTON_NAME_LEFT,
-    BUTTON_NAME_RIGHT
+    BUTTON_NAME_ROTATE,
+    
 } button_name_t;
 
 // Структура кнопки
@@ -24,7 +26,7 @@ typedef struct
     // Флаг нажатия кнопки    
     bool pressed;
     // Имя кнопки
-    button_name_t name;
+    const button_name_t name;
     
 } button_t;
 // TODO: Попробовать реализовать весь модуль на одном таймере 
@@ -33,12 +35,12 @@ typedef struct
 void button_init(void);
 
 // Обработчики прерываний кнопок
-void button_0_iqr(void);
+void button_0_isr(void);
 
-void button_1_iqr(void);
+void button_1_isr(void);
 
-void button_2_iqr(void);
+void button_2_isr(void);
 
-void button_3_iqr(void);
+void button_3_isr(void);
 
 #endif // __BUTTON_H
