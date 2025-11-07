@@ -9,13 +9,13 @@ void io_init(void)
     
     /*** Порт А ***/
     IO_RESET();
-        IO_OUT_HIGH_PU(IO_LCD_RESX_PIN);                                        // Пин для аппаратного сброса     
+        IO_OUT_PD(IO_LCD_RESX_PIN);                                        // Пин для аппаратного сброса     
         IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
         IO_OUT_LOW_PD(IO_LCD_LED_PIN);                                          // Пин подсветки дисплея
         IO_OUT_LOW_PD(IO_LCD_DCRS_PIN);                                         // Пин выбора команды/данных
         IO_AF_PU(IO_LCD_CSX_PIN, 5);                                            // Пин выбора slave-устройства                                           
         IO_NC(5);
-        IO_NC(6);
+        IO_AF_PD(IO_LCD_SDO_PIN, 5);                                            // Пин для получения данных
         IO_AF_PD(IO_LCD_SDA_PIN, 5);                                            // Пин для передачи данных
         IO_NC(8);
         IO_NC(9);
