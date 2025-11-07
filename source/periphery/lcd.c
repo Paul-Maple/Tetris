@@ -4,7 +4,7 @@
 #include <io.h>
 #include <timer.h>
 #include <event.h>
-#include <test.h>
+#include <tetris.h>
 
 /*   Последовательность команд для инициализации ILI9341:
 io_lcd_hard_reset()     - Аппаратный сброс
@@ -20,7 +20,6 @@ lcd_diplay_on()         - Включить дисплей
 #define LCD_DCRS_DATA        1    // Данные
 
 // Тики таймера для асинхронной задержки отправки команд
-//#define LCD_TIME_DELAY_1MS          TIMER_TICKS_MS(1)
 #define LCD_TIME_DELAY_50MS          TIMER_TICKS_MS(50)
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
 
@@ -34,6 +33,7 @@ lcd_diplay_on()         - Включить дисплей
 #define LCD_CMD_COLLUM_SET              0x2A         // Установка адреса столбца
 #define LCD_CMD_LINE_SET                0x2B         // Установка адреса строки    
 #define LCD_CMD_MEMORY_SET              0x2C         // Передача данных от МК до кадровой памяти
+#define LCD_CMD_MEMORY_READ             0x2E         // Чтение памяти дисплея
 // TODO: Добавить необходимые команды, а лишние убрать
 
 /*
@@ -54,8 +54,6 @@ static void lcd_reset(void);
 static void lcd_configuration(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
-// TODO: Удалить тестовую отрисовку
-extern void tetris_init(void);
 
 // Список команд для инициализации
 static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
@@ -215,6 +213,32 @@ void lcd_draw_image(const lcd_position_t position, const uint16_t color)
     
     // Отправка цвета области
     lcd_color_tx(color, (uint32_t)((position.x2 - position.x1 + 1) * (position.y2 - position.y1 + 1)));
+}
+
+void lcd_read_color(const lcd_position_t position, uint16_t *color)
+{
+    // Отправка координат X
+    lcd_cmd_tx(LCD_CMD_COLLUM_SET);
+    lcd_data_tx(position.x1 >> 8);
+    lcd_data_tx(position.x1);
+    lcd_data_tx(position.x2 >> 8);
+    lcd_data_tx(position.x2);
+    
+    // Отправка координат Y
+    lcd_cmd_tx(LCD_CMD_LINE_SET);
+    lcd_data_tx(position.y1 >> 8);
+    lcd_data_tx(position.y1);
+    lcd_data_tx(position.y2 >> 8);
+    lcd_data_tx(position.y2);
+    
+    // Отправка команды чтения данных из памяти дисплея
+    lcd_cmd_tx(LCD_CMD_MEMORY_READ);
+    
+    // Установить вывод DCRS в "0"
+    io_dcrs_set(LCD_DCRS_CMD);
+    
+    // Прочитать цвет из памяти
+    spi_receive(color);
 }
 
 void lcd_clear(void)
