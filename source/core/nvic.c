@@ -45,26 +45,31 @@ static void bus_fault_handler_isr(void)
     while(1) 
     { }
 }
+
 static void usage_fault_handler_isr(void)
 {
     while(1) 
     { }
 }
+
 static void svcall_handler_isr(void)
 {
     while(1) 
     { }
 }
+
 static void debug_handler_isr(void)
 {
     while(1) 
     { }
 }
+
 static void pendsv_handler_isr(void)
 {
     while(1) 
     { }
 }
+
 static void systik_handler_isr(void)
 {
     while(1) 
@@ -112,10 +117,10 @@ __root const nvic_vtbl_t __vector_table @ ".intvec" =
             nvic_interrupt_dummy,              //  RTC Wakeup through the EXTI line
             nvic_interrupt_dummy,              //  FLASH
             clk_lse_ready_isr,                 //  RCC
-            button_0_iqr,                      //  EXTI Line0
-            button_1_iqr,                      //  EXTI Line1
-            button_2_iqr,                      //  EXTI Line2
-            button_3_iqr,                      //  EXTI Line3
+            button_0_isr,                      //  EXTI Line0
+            button_1_isr,                      //  EXTI Line1
+            button_2_isr,                      //  EXTI Line2
+            button_3_isr,                      //  EXTI Line3
             nvic_interrupt_dummy,              //  EXTI Line4
             nvic_interrupt_dummy,              //  DMA1 Channel 1
             nvic_interrupt_dummy,              //  DMA1 Channel 2
