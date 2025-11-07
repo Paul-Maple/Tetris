@@ -30,7 +30,8 @@
  *      Пины для LCD:                                                           *
  *      В режиме Alternate function (AF5):                                      *
  *  SCL (CLK)  -  Serial Clock Line (Тактирование)                              *
- *  SDA (MOSI) -  Serial Data (Данные по 8 бит)                                 *
+ *  SDA (MOSI) -  Serial Data Tx                                                *
+ *  SDO (MISO) -  Serial Data Rx                                                *
  *  CSX (NSS)  -  Chip Select (Входа разрешения, активен при "0")               *
  *      В режиме OUT:                                                           *
  *  DCRS  -  Data/Command Register Select (Данные - "1" / Команды - "0")        *
@@ -52,8 +53,10 @@
 
 // Пины LCD (Режим AF5)
 #define IO_LCD_SCL_PIN      1U                                                  /*** SCL,   Port A ***/
-#define IO_LCD_SDA_PIN      7U                                                  /*** SDA,   Port A ***/
 #define IO_LCD_CSX_PIN      4U                                                  /*** CSX,   Port A ***/
+#define IO_LCD_SDO_PIN      6U                                                  /*** CDO,   Port A ***/
+#define IO_LCD_SDA_PIN      7U                                                  /*** SDA,   Port A ***/
+
 // Пины LCD (Режим OUT)
 #define IO_LCD_RESX_PIN     0U                                                  /*** RESET, Port A ***/
 #define IO_LCD_DCRS_PIN     3U                                                  /*** DC/RS, Port A ***/
@@ -66,10 +69,10 @@
 #define IO_JTDI_PIN         15U                                                 /*** JTAG pin ***/
 
 // Пины кнопок (Все порт С)
-#define IO_BUTTON_0         0U                                                  /***  ***/
-#define IO_BUTTON_1         1U                                                  /***  ***/
-#define IO_BUTTON_2         2U                                                  /***  ***/
-#define IO_BUTTON_3         3U                                                  /***  ***/
+#define IO_BUTTON_0         0                                                   /***  ***/
+#define IO_BUTTON_1         1                                                   /***  ***/
+#define IO_BUTTON_2         2                                                   /***  ***/
+#define IO_BUTTON_3         3                                                   /***  ***/
 
        /*** Сброс и установка значений в регистрах I/O ***/
 // Сброс регистров I/O
