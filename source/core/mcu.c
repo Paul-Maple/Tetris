@@ -27,16 +27,15 @@ void mcu_init(void)
     // Вход PLL - MSI
     RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_MSI;
     
-    // f(VCO clock) = f(PLL clock input) * (PLLN / PLLM) = ( 4 MHz / 1 ) * 30 = 120 MHz
+    // f(VCO clock) = f(PLL clock input) * (PLLN / PLLM) = 4 MHz * ( 20 / 1 ) = 80 MHz
     RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLM_0 | RCC_PLLCFGR_PLLM_1 | RCC_PLLCFGR_PLLM_2);    // PLLM = 1
-    RCC->PLLCFGR |= RCC_PLLCFGR_PLLN_1 | RCC_PLLCFGR_PLLN_2 |                           // PLLN = 30
-                    RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_4 |
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLN_2 | RCC_PLLCFGR_PLLN_4 |                           // PLLN = 20
                     RCC_PLLCFGR_PLLR_0;                                                 // PLLR = 4                                          
-    // f (PLLCLK) = VCO / PLLR = 120 MHz / 4 = 30 MHz
+    // f (PLLCLK) = VCO / PLLR = 120 MHz / 4 = 20 MHz
 }
 
 void mcu_set_pll(void)
-{
+{    
     // Вкл. PLL
     RCC->CR |= RCC_CR_PLLON;
     // Вкл. выход PLLCLK
@@ -44,13 +43,14 @@ void mcu_set_pll(void)
     // Ожидание готовности PLL
     while (!(RCC->CR & RCC_CR_PLLRDY));
     // PLL selected as system clock
-    RCC->CFGR |= RCC_CFGR_SW_0 | RCC_CFGR_SW_1;
+    RCC->CFGR |= RCC_CFGR_SW_PLL;
 }
 
 void mcu_reset_pll(void)
 {
     // MSI selected as system clock
-    RCC->CFGR &= ~(RCC_CFGR_SW_0 | RCC_CFGR_SW_1);
+    RCC->CFGR &= ~RCC_CFGR_SW_PLL;
+    RCC->CFGR |= RCC_CFGR_SW_MSI;
     // Выкл. PLL
     RCC->CR &= ~RCC_CR_PLLON;
 }
