@@ -9,7 +9,10 @@ void spi_transmit(const uint8_t data);
 // Передача 16-битного цвета
 void spi_transmit_color(const uint16_t color, const uint32_t size);
 
-// Получение 16 бит данных 
-void spi_receive(uint16_t *data);
+// Получение 16 бит данных с предварительной отправкой команды чтения
+/* Отдельно отправлять команду на чтение и читать данные нельзя
+   поскольку chip select должен быть в "0" непрерывно между 
+   командой и чтением данных из памяти дисплея*/
+void spi_receive(const uint8_t cmd, uint8_t *data, uint8_t size);
 
 #endif // __SPI_H
