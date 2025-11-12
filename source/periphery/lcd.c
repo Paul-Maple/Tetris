@@ -215,7 +215,7 @@ void lcd_draw_image(const lcd_position_t position, const uint16_t color)
     lcd_color_tx(color, (uint32_t)((position.x2 - position.x1 + 1) * (position.y2 - position.y1 + 1)));
 }
 
-void lcd_read_color(const lcd_position_t position, uint16_t *color)
+void lcd_read_color(const lcd_position_t position, uint16_t *color, const uint16_t size)
 {
     // Отправка координат X
     lcd_cmd_tx(LCD_CMD_COLLUM_SET);
@@ -231,14 +231,11 @@ void lcd_read_color(const lcd_position_t position, uint16_t *color)
     lcd_data_tx(position.y2 >> 8);
     lcd_data_tx(position.y2);
     
-    // Отправка команды чтения данных из памяти дисплея
-    lcd_cmd_tx(LCD_CMD_MEMORY_READ);
-    
     // Установить вывод DCRS в "0"
     io_dcrs_set(LCD_DCRS_CMD);
     
     // Прочитать цвет из памяти
-    spi_receive(color);
+    spi_receive(LCD_CMD_MEMORY_READ, color, size * 3);
 }
 
 void lcd_clear(void)
