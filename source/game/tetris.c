@@ -58,9 +58,6 @@ typedef enum
         
 } tetris_offset_t;
 
-// Тип смещения активной фигуры
-tetris_offset_t tetris_offset_figure = TETRIS_OFFSET_NON;
-
 // Структура текущей фигуры для отрисовки
 typedef struct
 {
@@ -72,8 +69,8 @@ typedef struct
     uint16_t x;
     uint16_t y;
     // Размер фигуры
-    uint8_t size_i;
-    uint8_t size_j;
+    uint8_t collum; // Столбец
+    uint8_t row;    // Строка
     
 } tetris_figure_t;
 
@@ -111,46 +108,64 @@ static bool tetris_button_right_pressed  = false;
 static bool tetris_button_left_pressed   = false;
 static bool tetris_button_rotate_pressed = false;
 
-// Проверка коллизий фигуры с нижней границей
-static bool tetris_check_collision(tetris_offset_t offset)
-{
+
+// Проверка коллизии с нижней границей
+static bool tetris_check_collision_down(void)
+{    
     // Цвет пикселя для чтения
     uint16_t color;
     // Координаты пикселя для чтения из памяти LCD
     lcd_position_t pixel;
     
+    // Проходимся снизу-вверх, слева-направо
+    for (int8_t j = tetris_figure.row; j >= 0; j--)      // Строка
+    {
+        for (uint8_t i = 0; i < tetris_figure.collum; i++)  // Столбец
+        {
+            if (tetris_shape[i][j] == 1)
+            {
+                // Назначение координат одного пикселя
+                pixel.x1 = pixel.x2 = tetris_figure.x + i * 10 + 2;
+                pixel.y1 = pixel.y2 = tetris_figure.y + j * 10 - 1;
+                // Чтение цвета пикселя
+                lcd_read_color(pixel, &color, 1);
+                
+                if (color != LCD_COLOR_WHITE)
+                    return true;       
+            }
+        }
+    }
+    return false;
+}
+
+// Проверка коллизий
+static bool tetris_check_collision(tetris_offset_t offset)
+{
+    // Флаг коллизии
+    bool collision_flag = false;
+    
     switch(offset)
     {
         case TETRIS_OFFSET_DOWN:
-            pixel.x1 = tetris_figure.x;
-            pixel.y1 = tetris_figure.y - 1;
+            collision_flag = tetris_check_collision_down();
             break;
         
         case TETRIS_OFFSET_RIGHT:
-            pixel.x1 = tetris_figure.x + 10;
-            pixel.y1 = tetris_figure.y;
+            //collision_flag = tetris_check_collision_right();
             break;
         
         case TETRIS_OFFSET_LEFT:
-            pixel.x1 = tetris_figure.x - 10;
-            pixel.y1 = tetris_figure.y;
+            //collision_flag = tetris_check_collision_left();
             break;
-        
-        case TETRIS_OFFSET_NON:
-            (assert(false));
         
         default:
             (assert(false));
     }
     
-    // Назначение координат одного пикселя
-    pixel.x2 = pixel.x1;
-    pixel.y2 = pixel.y1;
-    // Чтение цвета соседнего пикселя
-    lcd_read_color(pixel, &color);
+
     
     // Если произошла коллизия с нижней границей
-    if ((color != LCD_COLOR_WHITE) && (offset == TETRIS_OFFSET_DOWN))
+    if (collision_flag && (offset == TETRIS_OFFSET_DOWN))
     {
         // Установка флага необходимости создания новой фигуры
         tetris_get_new_figure_needed = true;
@@ -158,8 +173,8 @@ static bool tetris_check_collision(tetris_offset_t offset)
     }
     
     // Если произошла коллизия с боковыми границами
-    if ((color != LCD_COLOR_WHITE) && ((offset == TETRIS_OFFSET_LEFT) | (offset == TETRIS_OFFSET_RIGHT)))
-        return true;
+    //if (collision_flag && ((offset == TETRIS_OFFSET_LEFT) || (offset == TETRIS_OFFSET_RIGHT)))
+        //return true;
     
     return false;
 }
@@ -169,7 +184,7 @@ static void tetris_draw_cube(uint16_t offset_x, uint16_t offset_y, uint16_t colo
 {
     // Координаты фигуры для отрисовки
     lcd_position_t figure;
-
+    
     // Цветной куб 
     figure.x1 = tetris_figure.x + offset_x + 1;
     figure.x2 = figure.x1 + 8;
@@ -221,9 +236,9 @@ static void tetris_redrawing_figure(tetris_offset_t offset)
     // Если смещаем вправо
     if (offset == TETRIS_OFFSET_RIGHT)
     {
-        for (int8_t i = tetris_figure.size_i; i >= 0;  i--)
+        for (int8_t i = tetris_figure.collum; i >= 0;  i--)
         {
-            for (uint8_t j = 0; j < tetris_figure.size_j; j++)
+            for (uint8_t j = 0; j < tetris_figure.row; j++)
             {  
                 if (tetris_shape[i][j] == 1)
                 {
@@ -246,9 +261,9 @@ static void tetris_redrawing_figure(tetris_offset_t offset)
         // Изменяем координату фигуры
         tetris_figure.x -= TETRIS_BUTTON_FIGURE_OFFSET_X;
         
-        for (uint8_t i = 0; i < tetris_figure.size_i;  i++)
+        for (uint8_t i = 0; i < tetris_figure.collum;  i++)
         {
-            for (uint8_t j = 0; j < tetris_figure.size_j; j++)
+            for (uint8_t j = 0; j < tetris_figure.row; j++)
             {  
                 if (tetris_shape[i][j] == 1)
                 {
@@ -259,7 +274,6 @@ static void tetris_redrawing_figure(tetris_offset_t offset)
                 }  
             }
         }
-        
         return;
     }
 }
@@ -274,7 +288,7 @@ static void tetris_offset(timer_t *timer)
     if (tetris_button_down_pressed)
     {
         // Если не произошла коллизия
-        //if (!tetris_check_collision(TETRIS_OFFSET_DOWN))
+        if (!tetris_check_collision(TETRIS_OFFSET_DOWN))
         {
             // Перерисовываем фигуру
             tetris_redrawing_figure(TETRIS_OFFSET_DOWN);
@@ -322,6 +336,7 @@ static void tetris_rotate_figure(void)
         return;
     /*
     // Если при повороте произошла коллизия - выход без поворота фигуры
+    // Мб надо делать отдельную функцию для проверки коллизий при повороте
     if (tetris_check_collision(TETRIS_OFFSET_ROTATE))
         return;
     */
@@ -342,27 +357,25 @@ static void tetris_rotate_figure(void)
     }
     
     // Определяем размер для поворота (используем максимальный размер)
-    uint8_t size = (tetris_figure.size_i > tetris_figure.size_j) ? tetris_figure.size_i : tetris_figure.size_j;    
+    uint8_t size = (tetris_figure.collum > tetris_figure.row) ? tetris_figure.collum : tetris_figure.row;    
     
     // Поворачиваем фигуру на 90 градусов по часовой стрелке
     for (uint8_t i = 0; i < size; i++)
     {
         for (uint8_t j = 0; j < size; j++)
         {
+            // Копирование
             tetris_shape[j][size - 1 - i] = temp_shape[i][j];
-            
             // Перерисовываем повернутую фигуру
             if (tetris_shape[j][size - 1 - i] == 1)
-            {
                 tetris_draw_cube(j * 10, (size - 1 - i) * 10, tetris_figure.color);
-            }
         }
     }
     
     // Обновляем размеры после поворота
-    uint8_t temp_size = tetris_figure.size_i;
-    tetris_figure.size_i = tetris_figure.size_j;
-    tetris_figure.size_j = temp_size;
+    uint8_t temp_size = tetris_figure.collum;
+    tetris_figure.collum = tetris_figure.row;
+    tetris_figure.row = temp_size;
 }
 
 void tetris_button_pressed_notice(button_name_t name, bool state)
@@ -413,8 +426,8 @@ static void tetris_get_shape(uint8_t type)
     switch(type)
     {
         case TETRIS_FIGURE_TYPE_O:
-            tetris_figure.size_i = 2;
-            tetris_figure.size_j = 2;
+            tetris_figure.collum = 2;
+            tetris_figure.row = 2;
             tetris_shape[0][0] = 1;
             tetris_shape[0][1] = 1;
             tetris_shape[1][0] = 1;
@@ -422,8 +435,8 @@ static void tetris_get_shape(uint8_t type)
             break;
             
         case TETRIS_FIGURE_TYPE_Z:
-            tetris_figure.size_i = 3;
-            tetris_figure.size_j = 2;
+            tetris_figure.collum = 3;
+            tetris_figure.row = 2;
             tetris_shape[0][0] = 1;
             tetris_shape[1][0] = 1;
             tetris_shape[1][1] = 1;
@@ -431,8 +444,8 @@ static void tetris_get_shape(uint8_t type)
             break;
             
         case TETRIS_FIGURE_TYPE_L:
-            tetris_figure.size_i = 3;
-            tetris_figure.size_j = 3;
+            tetris_figure.collum = 3;
+            tetris_figure.row = 3;
             tetris_shape[0][1] = 1;
             tetris_shape[1][1] = 1;
             tetris_shape[2][1] = 1;
@@ -440,8 +453,8 @@ static void tetris_get_shape(uint8_t type)
             break;
             
         case TETRIS_FIGURE_TYPE_T:
-            tetris_figure.size_i = 3;
-            tetris_figure.size_j = 2;
+            tetris_figure.collum = 3;
+            tetris_figure.row = 2;
             tetris_shape[0][1] = 1;
             tetris_shape[1][1] = 1;
             tetris_shape[2][1] = 1;
@@ -449,8 +462,8 @@ static void tetris_get_shape(uint8_t type)
             break;
             
         case TETRIS_FIGURE_TYPE_I:
-            tetris_figure.size_i = 5;
-            tetris_figure.size_j = 5;
+            tetris_figure.collum = 5;
+            tetris_figure.row = 5;
             tetris_shape[0][2] = 1;
             tetris_shape[1][2] = 1;
             tetris_shape[2][2] = 1;
@@ -461,16 +474,12 @@ static void tetris_get_shape(uint8_t type)
             (assert(false));
     }
 }
+
 // Функция для отрисовки фигуры по таймеру
 static void tetris_draw_figure(timer_t *timer)
 {
     ASSERT_NULL_PTR(timer);
-    /*
-    // Если после смещения нет коллизий - смещаем фигуру
-    if (!tetris_check_collision_y(TETRIS_TIMER_FIGURE_OFFSET))
-        // Увеличить координату для смещения фигуры вниз на 1 пиксель
-        tetris_figure.y -= TETRIS_TIMER_FIGURE_OFFSET;
-     */
+
     // Если нужна новая фигура - выбор фигуры и её цвета
     if (tetris_get_new_figure_needed)
     {
@@ -517,12 +526,18 @@ static void tetris_draw_figure(timer_t *timer)
         /* Происходит один раз при создании новой фигуры            *
          * далее происходит только перерисовка изменяющихся частей, *
          * а не фигуры целиком                                      */
-        for (uint8_t i = 0; i < tetris_figure.size_i; i++)
-            for (uint8_t j = 0; j < tetris_figure.size_j; j++)
+        for (uint8_t i = 0; i < tetris_figure.collum; i++)
+            for (uint8_t j = 0; j < tetris_figure.row; j++)
                 if (tetris_shape[i][j] == 1)
                     // Вызов отрисовки одного куба фигуры
                     tetris_draw_cube(i * 10, j * 10, tetris_figure.color);
     }
+    /*
+    // Если не произошла коллизия
+    if (!tetris_check_collision(TETRIS_OFFSET_DOWN))
+        // Перерисовываем фигуру
+        tetris_redrawing_figure(TETRIS_OFFSET_DOWN); 
+    */
 }
 
 // Таймер для непрерывной отрисовки движущейся фигуры
@@ -553,4 +568,18 @@ void tetris_init(void)
     field.y1 = 269;
     field.y2 = 309;
     lcd_draw_image(field, LCD_COLOR_WHITE);
+    /*
+    // Поле тестового чтения пикселей
+    field.x1 = 190;
+    field.x2 = 200;
+    field.y1 = 240;
+    field.y2 = 250;
+    lcd_draw_image(field, 0x9FDB);
+    // 1001 1111 1101 1011
+    // 10011 111110 11011
+    // 100111 111110 110111
+    // 10011100 11111000 11011100
+    // 10011100 11111000 11011100
+    // 100111 11 1101 1011
+    */
 }
