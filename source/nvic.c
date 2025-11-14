@@ -1,9 +1,9 @@
 #include "nvic.h"
 // Модули, в которых есть перрывания
 #include "timer.h"
-#include <clk.h>
-#include <spi.h>
-#include <button.h>
+#include "clk.h"
+#include "spi.h"
+#include "key.h"
 
 // Имя секции стека
 #define NVIC_SECTION_STACK      "CSTACK"
@@ -117,10 +117,10 @@ __root const nvic_vtbl_t __vector_table @ ".intvec" =
             nvic_interrupt_dummy,              //  RTC Wakeup through the EXTI line
             nvic_interrupt_dummy,              //  FLASH
             clk_lse_ready_isr,                 //  RCC
-            button_0_isr,                      //  EXTI Line0
-            button_1_isr,                      //  EXTI Line1
-            button_2_isr,                      //  EXTI Line2
-            button_3_isr,                      //  EXTI Line3
+            key_0_isr,                      //  EXTI Line0
+            key_1_isr,                      //  EXTI Line1
+            key_2_isr,                      //  EXTI Line2
+            key_3_isr,                      //  EXTI Line3
             nvic_interrupt_dummy,              //  EXTI Line4
             nvic_interrupt_dummy,              //  DMA1 Channel 1
             nvic_interrupt_dummy,              //  DMA1 Channel 2

@@ -1,7 +1,7 @@
 #ifndef __NVIC_H
 #define __NVIC_H
 
-#include "mcu.h"
+#include <mcu.h>
 
 // Включает прерывание 
 inline void nvic_irq_enable(IRQn_Type irq)

@@ -1,7 +1,7 @@
 #ifndef __LED_H
 #define __LED_H
 
-#include <timer.h>
+#include "timer.h"
 
 // Инициализация модуля
 void led_init(void);

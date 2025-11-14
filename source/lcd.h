@@ -40,9 +40,6 @@ void lcd_init(void);
 // Установка изображения
 void lcd_draw_image(const lcd_position_t position, const uint16_t color);
 
-// Прочитать цвет из памяти дисплея
-void lcd_read_color(const lcd_position_t position, uint16_t *color, const uint16_t size);
-
 // Очистка дисплея (Заливка белым цветом)
 void lcd_clear(void);
 

@@ -1,15 +1,15 @@
 // Для включения прерываний глобально
-#include "mcu.h"
+#include <mcu.h>
 // Для инициализации модулей
 #include "io.h"
-#include <clk.h>
+#include "clk.h"
 #include "timer.h"
-#include <button.h>
-#include <lcd.h>
-#include <led.h>
+#include "key.h"
+#include "lcd.h"
+#include "led.h"
 #include "lpm.h"
 #include "event.h"
-#include <rng.h>
+#include "rng.h"
 //#include "test.h"
 
 __noreturn void main(void)
@@ -19,14 +19,14 @@ __noreturn void main(void)
     io_init();
     clk_init();
     timer_module_init();
-    button_init();
+    key_init();
+    rng_init();
     lcd_init();
     led_init();
-    lpm_init();
-    rng_init();
-    
+    //lpm_init();
+
     // Главный цикл
-    for(MCU_IQR_ENABLE();;)
+    for (MCU_IQR_ENABLE();;)
         event_process();  
     /***  while (1);  ***/    
 }

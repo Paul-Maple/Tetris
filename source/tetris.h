@@ -1,12 +1,12 @@
 #ifndef __TETRIS_H
 #define __TETRIS_H
 
-#include <button.h>
+#include "key.h"
 
 // Инициализация модуля
 void tetris_init(void);
 
 // Оповещение модуля о нажатии кнопки
-void tetris_button_pressed_notice(button_name_t name, bool state);
+void tetris_key_notice(key_name_t kay, bool state);
 
 #endif // __TETRIS_H

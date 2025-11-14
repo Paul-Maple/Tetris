@@ -1,16 +1,12 @@
 #ifndef __MCU_H
 #define __MCU_H
 
-/* Переферия:        *
- * LPTIM1 на LSI/LSE *
- * SPI               */
-
 // Стандартные
 #include <typedefs.h>
 // Для STM32L433
 #include <stm32l443xx.h>
 // Для прерываний
-#include "intrinsics.h"
+#include <intrinsics.h>
 
     /*** Частота ***/
 // Частота внешнего кварца
@@ -43,11 +39,5 @@
 
     /*** Инициализация модуля ***/
 void mcu_init(void);
-
-// Установить умножитель частоты
-void mcu_set_pll(void);
-
-// Сбросить умножитель частоты
-void mcu_reset_pll(void);
 
 #endif // __MCU_H
