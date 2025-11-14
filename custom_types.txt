@@ -15,8 +15,8 @@ timer_register_t
 timer_interval_t
 timer_mode_t
 
-button_t
-button_name_t
+key_t
+key_name_t
 
 lcd_cmd_t
 lcd_position_t
