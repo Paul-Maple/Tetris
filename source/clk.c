@@ -1,9 +1,9 @@
 #include "clk.h"
-#include <nvic.h>
-#include <event.h>
+#include "nvic.h"
+#include "event.h"
 
 // Модули, в которых есть тактирование от LSE/LSI
-#include <timer.h>
+#include "timer.h"
 
 // События сбоя и стабилизации LSE
 event_t clk_lse_fail_event;

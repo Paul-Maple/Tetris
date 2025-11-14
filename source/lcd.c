@@ -1,10 +1,10 @@
 #include "lcd.h"
-#include <lcd_reg.h>
+#include "lcd_reg.h"
 #include "spi.h"
-#include <io.h>
-#include <timer.h>
-#include <event.h>
-#include <tetris.h>
+#include "io.h"
+#include "timer.h"
+#include "event.h"
+#include "tetris.h"
 
 /*   Последовательность команд для инициализации ILI9341:
 io_lcd_hard_reset()     - Аппаратный сброс
@@ -35,19 +35,6 @@ lcd_diplay_on()         - Включить дисплей
 #define LCD_CMD_MEMORY_SET              0x2C         // Передача данных от МК до кадровой памяти
 #define LCD_CMD_MEMORY_READ             0x2E         // Чтение памяти дисплея
 // TODO: Добавить необходимые команды, а лишние убрать
-
-/*
-// Статическая инициализация элемента цепочки команд
-#define LCD_CMD_STATIC_INIT(_cmd, _data, _size)                                 \
-{                                                                               \
-    .cmd  = _cmd,                                                               \
-    .data = _data,                                                              \
-    .size = _size                                                               \
-}
-
-//  Инициализация элемента цепочки команд
-#define LCD_CMD_INIT(cmd, data)     LCD_CMD_STATIC_INIT(cmd, &(data), sizeof(data))
-*/
 
 // Предварительные обяъвления функций
 static void lcd_reset(void);
@@ -97,7 +84,7 @@ static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_
 // Отправка команды по SPI
 static void lcd_cmd_tx(const uint8_t cmd)
 {
-    // Установить вывод DCRS в "0" для отправки команды
+    // Установить вывод DCRS в >0> для отправки команды
     io_dcrs_set(LCD_DCRS_CMD);
     
     // Передача
@@ -107,7 +94,7 @@ static void lcd_cmd_tx(const uint8_t cmd)
 // Отправка данных по SPI
 static void lcd_data_tx(const uint8_t data)
 {
-    // Установить вывод DCRS в "1" для отправки данных
+    // Установить вывод DCRS в >1> для отправки данных
     io_dcrs_set(LCD_DCRS_DATA);
     
     // Передача
@@ -117,7 +104,7 @@ static void lcd_data_tx(const uint8_t data)
 // Отправка данных по SPI
 static void lcd_color_tx(const uint16_t color, const uint32_t size)
 {
-    // Установить вывод DCRS в "1" для отправки данных
+    // Установить вывод DCRS в >1> для отправки данных
     io_dcrs_set(LCD_DCRS_DATA);
     
     // Передача
@@ -186,7 +173,7 @@ void lcd_init(void)
     list_insert(&lcd_cmd_init_list, &lcd_configuration_event.item);             // Settings LCD
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);                 // Display ON
     
-    list_insert(&lcd_cmd_init_list, &lcd_start_game_event.item);                // Start
+    list_insert(&lcd_cmd_init_list, &lcd_start_game_event.item);                // Start game
     
     // Запуск таймера для задержки отправки следующей команды
     lcd_delay_timer_start(LCD_TIME_DELAY_50MS);
@@ -213,29 +200,6 @@ void lcd_draw_image(const lcd_position_t position, const uint16_t color)
     
     // Отправка цвета области
     lcd_color_tx(color, (uint32_t)((position.x2 - position.x1 + 1) * (position.y2 - position.y1 + 1)));
-}
-
-void lcd_read_color(const lcd_position_t position, uint16_t *color, const uint16_t size)
-{
-    // Отправка координат X
-    lcd_cmd_tx(LCD_CMD_COLLUM_SET);
-    lcd_data_tx(position.x1 >> 8);
-    lcd_data_tx(position.x1);
-    lcd_data_tx(position.x2 >> 8);
-    lcd_data_tx(position.x2);
-    
-    // Отправка координат Y
-    lcd_cmd_tx(LCD_CMD_LINE_SET);
-    lcd_data_tx(position.y1 >> 8);
-    lcd_data_tx(position.y1);
-    lcd_data_tx(position.y2 >> 8);
-    lcd_data_tx(position.y2);
-    
-    // Установить вывод DCRS в "0"
-    io_dcrs_set(LCD_DCRS_CMD);
-    
-    // Прочитать цвет из памяти
-    spi_receive(LCD_CMD_MEMORY_READ, color, size * 3);
 }
 
 void lcd_clear(void)

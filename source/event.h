@@ -1,7 +1,7 @@
 #ifndef __EVENT_H
 #define __EVENT_H
 
-#include <list.h>
+#include "list.h"
 
 // Статическая инициализация события
 #define EVENT_STATIC_INIT(_cb)                                                  \

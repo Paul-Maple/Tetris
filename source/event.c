@@ -1,5 +1,5 @@
 #include "event.h"
-#include "mcu.h"
+#include <mcu.h>
 
 // Список событий
 static list_t event_list = LIST_STATIC_INIT();
@@ -57,6 +57,6 @@ void event_process(void)
             list_remove(&event_list, &temp_event->item);
         }
         
-        MCU_WFI_ENTER();       
+        //MCU_WFI_ENTER();
     MCU_IQR_ENABLE();
 }

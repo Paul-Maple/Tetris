@@ -1,7 +1,7 @@
 #include "timer.h"
 #include "event.h"
 #include "nvic.h"
-#include <clk.h>
+#include "clk.h"
 
     /*** Для расчёта тиков и интервалов таймера ***/
 // Регистр аппаратного таймера

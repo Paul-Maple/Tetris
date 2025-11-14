@@ -1,8 +1,8 @@
 #ifndef __TIMER_H
 #define __TIMER_H
 
-#include <list.h>
-#include "mcu.h"
+#include "list.h"
+#include <mcu.h>
 
 // Инитервал тиков таймера
 typedef uint32_t timer_interval_t;
