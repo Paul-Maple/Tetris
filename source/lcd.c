@@ -1,5 +1,5 @@
 #include "lcd.h"
-#include "lcd_reg.h"
+#include <lcd_reg.h>
 #include "spi.h"
 #include "io.h"
 #include "timer.h"
@@ -7,9 +7,9 @@
 #include "tetris.h"
 
 /*   Последовательность команд для инициализации ILI9341:
-io_lcd_hard_reset()     - Аппаратный сброс
 io_led_on()             - Включить подсветку дисплея
-lcd_reset()             - Программный сброс
+io_lcd_hard_reset()     - Аппаратный сброс
+lcd_soft_reset()        - Программный сброс
 lcd_sleep_out()         - Выход из режима сна
 lcd_lcd_configuration() - Настройка LCD
 lcd_diplay_on()         - Включить дисплей
@@ -37,7 +37,9 @@ lcd_diplay_on()         - Включить дисплей
 // TODO: Добавить необходимые команды, а лишние убрать
 
 // Предварительные обяъвления функций
-static void lcd_reset(void);
+static void lcd_resx_set(void);
+static void lcd_resx_reset(void);
+static void lcd_soft_reset(void);
 static void lcd_configuration(void);
 static void lcd_sleep_out(void);
 static void lcd_diplay_on(void);
@@ -45,8 +47,13 @@ static void lcd_diplay_on(void);
 // Список команд для инициализации
 static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
 
+static void lcd_dummy(void)
+{ }
+
+// События для аппаратного сброса дисплея
+static event_t lcd_resx_set_event      = EVENT_STATIC_INIT(lcd_resx_set);
 // События отправки команд
-static event_t lcd_reset_event         = EVENT_STATIC_INIT(lcd_reset);
+static event_t lcd_soft_reset_event    = EVENT_STATIC_INIT(lcd_soft_reset);
 static event_t lcd_configuration_event = EVENT_STATIC_INIT(lcd_configuration);
 static event_t lcd_sleep_out_event     = EVENT_STATIC_INIT(lcd_sleep_out);
 static event_t lcd_diplay_on_event     = EVENT_STATIC_INIT(lcd_diplay_on);
@@ -64,11 +71,14 @@ static void lcd_delay_cmd_tx(timer_t * timer)
     lcd_delay_flag = false;
     
     // Обработка списка команд 
-    for (list_item_t *temp_item = lcd_cmd_init_list.head; temp_item != NULL; temp_item = temp_item->next)
+    for (list_item_t *temp_item = lcd_cmd_init_list.head; temp_item != NULL; )
     {
+        // Получить указатель на первый элемент
         event_t * const temp_event = (event_t *)lcd_cmd_init_list.head;
         // Вызов отправки команды
         temp_event->cb();
+        // Получить указатель на следующий элемент списка
+        temp_item = temp_item->next;
         // Удаляем из списка
         list_remove(&lcd_cmd_init_list, &temp_event->item);
         
@@ -81,10 +91,19 @@ static void lcd_delay_cmd_tx(timer_t * timer)
 // Таймер для задержки отправки команд
 static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_delay_cmd_tx);
 
+// Запуск таймера задержки отправки команд и данных по SPI
+static void lcd_delay_timer_start(timer_interval_t interval)
+{
+    // Запуск таймера
+    timer_start(&lcd_delay_cmd_timer, interval);
+    // Установка флага задержки
+    lcd_delay_flag = true;
+}
+
 // Отправка команды по SPI
 static void lcd_cmd_tx(const uint8_t cmd)
 {
-    // Установить вывод DCRS в >0> для отправки команды
+    // Установить вывод DCRS в "0" для отправки команды
     io_dcrs_set(LCD_DCRS_CMD);
     
     // Передача
@@ -94,7 +113,7 @@ static void lcd_cmd_tx(const uint8_t cmd)
 // Отправка данных по SPI
 static void lcd_data_tx(const uint8_t data)
 {
-    // Установить вывод DCRS в >1> для отправки данных
+    // Установить вывод DCRS в "1" для отправки данных
     io_dcrs_set(LCD_DCRS_DATA);
     
     // Передача
@@ -104,7 +123,7 @@ static void lcd_data_tx(const uint8_t data)
 // Отправка данных по SPI
 static void lcd_color_tx(const uint16_t color, const uint32_t size)
 {
-    // Установить вывод DCRS в >1> для отправки данных
+    // Установить вывод DCRS в "1" для отправки данных
     io_dcrs_set(LCD_DCRS_DATA);
     
     // Передача
@@ -121,15 +140,6 @@ static void lcd_configuration(void)
 	// Pixel format
 	lcd_cmd_tx(LCD_CMD_PIXEL_FORMAT_SET);
 	lcd_data_tx((uint8_t)LCD_PIXEL_16_BIT);
-}
-
-// Запуск таймера задержки отправки команд и данных по SPI
-static void lcd_delay_timer_start(timer_interval_t interval)
-{
-    // Запуск таймера
-    timer_start(&lcd_delay_cmd_timer, interval);
-    // Установка флага задержки
-    lcd_delay_flag = true;
 }
 
 // Включить дисплей
@@ -151,7 +161,7 @@ static void lcd_sleep_out(void)
 }
 
 // Программный сброс
-static void lcd_reset(void)
+static void lcd_soft_reset(void)
 {
     lcd_cmd_tx(LCD_CMD_SOFT_RESET);
     
@@ -159,24 +169,31 @@ static void lcd_reset(void)
     lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
 }
 
+// Установить пин RESX в "1"
+static void lcd_resx_set(void)
+{
+    io_resx_set();
+    
+    // Запуск таймера для задержки отправки следующей команды
+    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
+}
+
 void lcd_init(void)
 {
-    // Аппаратный сброс
-    io_lcd_hard_reset();
-    
     // Включить подсветку дисплея
     io_led_on();
-    
+    // Сбросить пин RESX  в "0"
+    io_resx_reset();
     // Добавляем события для инициализации в список
-    list_insert(&lcd_cmd_init_list, &lcd_reset_event.item);                     // Soft reset
+    list_insert(&lcd_cmd_init_list, &lcd_resx_set_event.item);                  // Hard reset
+    list_insert(&lcd_cmd_init_list, &lcd_soft_reset_event.item);                // Soft reset
     list_insert(&lcd_cmd_init_list, &lcd_sleep_out_event.item);                 // Sleep OUT
     list_insert(&lcd_cmd_init_list, &lcd_configuration_event.item);             // Settings LCD
     list_insert(&lcd_cmd_init_list, &lcd_diplay_on_event.item);                 // Display ON
-    
     list_insert(&lcd_cmd_init_list, &lcd_start_game_event.item);                // Start game
     
     // Запуск таймера для задержки отправки следующей команды
-    lcd_delay_timer_start(LCD_TIME_DELAY_50MS);
+    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
 }
 
 void lcd_draw_image(const lcd_position_t position, const uint16_t color)
@@ -195,7 +212,7 @@ void lcd_draw_image(const lcd_position_t position, const uint16_t color)
     lcd_data_tx(position.y2 >> 8);
     lcd_data_tx(position.y2);
     
-    // Заливка области одним цветом
+    // Команда записи цвета в память
     lcd_cmd_tx(LCD_CMD_MEMORY_SET);
     
     // Отправка цвета области
