@@ -3,13 +3,13 @@
 
 /* LED используется для проверки работы программного таймера */
 
-// Программный таймер LED_LPTIM1
+// Программный таймер
 static timer_t led_timer;
 
 // Инициализация модуля
 void led_init(void)
 {
-    // Инициализация программного таймера LED_LPTIM1
+    // Инициализация программного таймера
     timer_init(&led_timer, TIMER_MODE_CONTINUOUS, led_state_switch);
     // Запуск программного таймера 
     timer_start(&led_timer, TIMER_TICKS_MS(500));

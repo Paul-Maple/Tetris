@@ -38,7 +38,6 @@ lcd_diplay_on()         - Включить дисплей
 
 // Предварительные обяъвления функций
 static void lcd_resx_set(void);
-static void lcd_resx_reset(void);
 static void lcd_soft_reset(void);
 static void lcd_configuration(void);
 static void lcd_sleep_out(void);
@@ -46,9 +45,6 @@ static void lcd_diplay_on(void);
 
 // Список команд для инициализации
 static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
-
-static void lcd_dummy(void)
-{ }
 
 // События для аппаратного сброса дисплея
 static event_t lcd_resx_set_event      = EVENT_STATIC_INIT(lcd_resx_set);
@@ -212,10 +208,8 @@ void lcd_draw_image(const lcd_position_t position, const uint16_t color)
     lcd_data_tx(position.y2 >> 8);
     lcd_data_tx(position.y2);
     
-    // Команда записи цвета в память
+    // Отправка команды записи цвета в память и цвета области 
     lcd_cmd_tx(LCD_CMD_MEMORY_SET);
-    
-    // Отправка цвета области
     lcd_color_tx(color, (uint32_t)((position.x2 - position.x1 + 1) * (position.y2 - position.y1 + 1)));
 }
 

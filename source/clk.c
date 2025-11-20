@@ -36,7 +36,7 @@ void clk_init(void)
     RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
     // PLL selected as system clock
     RCC->CFGR |= RCC_CFGR_SW_PLL;
-    //  Ожидание переключения системной частоты на PLL
+    // Ожидание переключения системной частоты на PLL
     while (!(RCC->CFGR & RCC_CFGR_SWS_PLL));
     
     // Инициализация событий стабилизации/сбоя LSE
