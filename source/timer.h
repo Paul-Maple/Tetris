@@ -30,9 +30,6 @@ typedef uint32_t timer_interval_t;
 // Инициализация модуля (Иициализируются аппаратные таймеры и событие)
 void timer_module_init(void);
 
-// Оповещение модуля lptim1 о смене источника тактирования
-void timer_clk_notice(void);
-
 // Предварительное объявление структуры таймера
 typedef struct timer_s timer_t;
 
@@ -67,9 +64,9 @@ typedef struct timer_s
     struct
     {
         // Интервал до перезагрузки 
-        uint32_t reload;
+        timer_interval_t reload;
         // Интервал до срабатывания
-        uint32_t remain;
+        timer_interval_t remain;
         // Флаг срабатывания таймера 
         bool rasied;
     } data;
@@ -92,7 +89,7 @@ void timer_processing_raised(void);
 // Обработчик прерывания аппаратного таймера LPTIM1
 void timer_lptim1_isr(void);
 
-// Оповещение модуля led о смене источника тактирования
+// Оповещение модуля о смене источника тактирования
 void timer_clk_notice(void);
 
 #endif // __TIMER_H

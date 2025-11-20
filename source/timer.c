@@ -4,20 +4,20 @@
 #include "clk.h"
 
     /*** Для расчёта тиков и интервалов таймера ***/
-// Регистр аппаратного таймера
+// Регистр аппаратного таймера (ARR и CMP)
 typedef uint16_t timer_register_t;
 
 // Минимальное время завода аппаратного таймера
 #define TIMER_INTERVAL_MIN      10
 
 // Максимальное значение регистра аппаратного таймера (uint16_t)
-#define TIMER_REGISTER_MAX      ((timer_register_t)-1)
+#define TIMER_REGISTER_MAX      ((timer_register_t) - 1)
 
 // Верхнее значение интервала тиков таймера (uint32_t)
-#define TIMER_INTERVAL_TOP      ((timer_interval_t)-1)
+#define TIMER_INTERVAL_TOP      ((timer_interval_t) - 1)
 
 // Значение интервала переполнения таймера
-#define TIMER_INTERVAL_OVF      (TIMER_INTERVAL_TOP - (timer_interval_t)TIMER_REGISTER_MAX)
+#define TIMER_INTERVAL_OVF      (TIMER_INTERVAL_TOP - ((timer_interval_t)TIMER_REGISTER_MAX) * 2)
 
     /*** Аппаратный таймер LPTIM1 ***/     
 void timer_clk_notice(void)
@@ -62,11 +62,10 @@ void timer_module_init(void)
         /* CFGR и IER могут быть установлены ТОЛЬКО когда установлен LPTIM1_CR_ENABLE = 0          *
          * ARR, SNGSTRT и CMP могут быть установлены ТОЛЬКО когда установлен LPTIM1_CR_ENABLE = 1  *
          * ПОЭТОМУ ПОРЯДОК ЗАПИСИ В РЕГИСТРЫ ТАЙМЕРА НЕ МЕНЯТЬ !!!!!!!                             */
-        
         LPTIM1->CFGR &=  ~(LPTIM_CFGR_PRESC_0 | LPTIM_CFGR_PRESC_1 | LPTIM_CFGR_PRESC_2);       // Устновка делителя
         LPTIM1->IER   =  LPTIM_IER_ARRMIE | LPTIM_IER_CMPMIE;                                   // Разрешить прерывание по совпадению с ARR или CMP
         LPTIM1->CR    =  LPTIM_CR_ENABLE;                                                       // Запустить таймер
-        LPTIM1->ARR   =  (timer_register_t)-1;                                                  // Ограничение счёта
+        LPTIM1->ARR   =  (timer_register_t) - 1;                                                // Ограничение счёта
         LPTIM1->CR   |=  LPTIM_CR_CNTSTRT;                                                      // Режим непрерывного счёта 
         
         // Разрешить прерывания у таймера
@@ -92,12 +91,12 @@ void timer_init(timer_t *timer, timer_mode_t mode, timer_handler_ptr handler)
 // Флаг остановки таймера
 static bool timer_was_stopped = false;
 // Предыдущее значение регистра аппаратного таймера
-static uint16_t timer_register_last = 0;
+static timer_register_t timer_register_last = 0;
 
 // Получает актуальное значение регистра счётчика 
-static uint32_t timer_counter_get(volatile const uint32_t *reg)
+static timer_interval_t timer_counter_get(volatile const timer_interval_t *reg)
 {
-    uint32_t counter;
+    timer_interval_t counter;
     
     do 
     {
@@ -108,13 +107,13 @@ static uint32_t timer_counter_get(volatile const uint32_t *reg)
 }
 
 // Установка значения регистра сравнения аппаратного таймера
-static void timer_compare_set(uint16_t value)
+static void timer_compare_set(timer_register_t value)
 {
     LPTIM1->CMP = value;
 }
 
 // Нормализация значения интервала к минимальному
-static uint32_t timer_interval_normalize(uint32_t interval)
+static timer_interval_t timer_interval_normalize(timer_interval_t interval)
 {
     return interval < TIMER_INTERVAL_MIN ? 
     TIMER_INTERVAL_MIN : interval;
@@ -135,8 +134,8 @@ void timer_start(timer_t *timer, timer_interval_t ticks)
     
     // Установка задержки до срабатывания 
     {
-        const uint32_t time = timer_counter_get(&LPTIM1->CNT);
-        const uint32_t delta = time - timer_register_last;    
+        const timer_register_t time = timer_counter_get(&LPTIM1->CNT);
+        const timer_register_t delta = time - timer_register_last;    
         
         // Задание значения в регистр сравнения аппаратного таймера
         timer_compare_set(time + TIMER_INTERVAL_MIN);
@@ -178,11 +177,11 @@ static bool timer_processing(void)
     // Флаг наличия сработавших таймеров
     bool event_raise = false;
     
-    uint16_t time_min = TIMER_REGISTER_MAX;
-    uint16_t time_min_reg;
+    timer_interval_t time_min = TIMER_REGISTER_MAX;
+    timer_register_t time_min_reg;
     
     // Определение прошедшего времени
-    uint16_t time_delta = timer_counter_get(&LPTIM1->CNT);
+    timer_register_t time_delta = (timer_register_t)timer_counter_get(&LPTIM1->CNT);
     time_delta -= timer_register_last;
     timer_register_last += time_delta;
     
@@ -222,7 +221,7 @@ static bool timer_processing(void)
     }
     
     // Ограничение на минимальное время следующего срабатывания 
-    time_min_reg = timer_interval_normalize(time_min);
+    time_min_reg = (timer_register_t)timer_interval_normalize(time_min);
     // Установка нового значения срабатываня
     timer_compare_set(timer_counter_get(&LPTIM1->CNT) + time_min_reg);
     
