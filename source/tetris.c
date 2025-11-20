@@ -2,7 +2,7 @@
 #include "timer.h"
 #include "lcd.h"
 #include "rng.h"
-
+/*
 // Фигуры: L, O, Z, I, T
 
 // Размеры игровой области c учётом рамки: 16 x 30 кубиков
@@ -150,13 +150,13 @@ void tetris_key_notice(key_name_t kay, bool state)
             break;
     }
 }
-/*
+
 массив[строка][столбец]
     {1, 1, 1},
     {0, 1, 0},
     {0, 1, 0},
     {0, 1, 0}
-*/
+
 // Получение формы фигуры
 static void tetris_get_shape(uint8_t type)
 {
@@ -258,9 +258,9 @@ static void tetris_draw_new_figure(void)
     tetris_figure.y = 209; // 308
     
     // Отрисовка всеех секций фигуры 
-    /* Происходит один раз при создании новой фигуры            *
-     * далее происходит только перерисовка изменяющихся частей, *
-     * а не фигуры целиком                                      */
+    // Происходит один раз при создании новой фигуры            
+    // далее происходит только перерисовка изменяющихся частей, 
+    // а не фигуры целиком                                      
     for (uint8_t i = 0; i < tetris_figure.row; i++)         // Строка
         for (uint8_t j = 0; j < tetris_figure.collum; j++)  // Столбец
             if (tetris_shape[i][j] == 1)
@@ -270,7 +270,7 @@ static void tetris_draw_new_figure(void)
 
 // Таймер для непрерывной отрисовки движущейся фигуры
 static timer_t tetris_offset_down_timer = TIMER_STATIC_INIT(TIMER_MODE_CONTINUOUS, tetris_offset_timer_cb);
-
+*/
 void tetris_init(void)
 {
     // Запуск таймера
@@ -298,5 +298,5 @@ void tetris_init(void)
     lcd_draw_image(field, LCD_COLOR_WHITE);
     
     // Отрисовать стартовую фигуру
-    tetris_draw_new_figure();
+    //tetris_draw_new_figure();
 }

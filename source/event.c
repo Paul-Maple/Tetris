@@ -48,8 +48,8 @@ void event_process(void)
             ASSERT_NULL_PTR(temp_event);
             ASSERT_NULL_PTR(temp_event->cb);
             
-            // Вызов события
             MCU_IQR_ENABLE();
+                // Вызов события
                 temp_event->cb();
             MCU_IQR_DISABLE();
                 

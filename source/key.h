@@ -29,18 +29,15 @@ typedef struct
     const key_name_t name;
     
 } key_t;
-// TODO: Попробовать реализовать весь модуль на одном таймере 
+// TODO: Попробовать реализовать весь модуль на одном таймере
 
 // Инициализация модуля
 void key_init(void);
 
 // Обработчики прерываний кнопок
 void key_0_isr(void);
-
 void key_1_isr(void);
-
 void key_2_isr(void);
-
 void key_3_isr(void);
 
 #endif // __KEY_H

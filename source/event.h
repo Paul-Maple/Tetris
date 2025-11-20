@@ -7,7 +7,7 @@
 #define EVENT_STATIC_INIT(_cb)                                                  \
 {                                                                               \
     LIST_ITEM_STATIC_INIT(),                                                    \
-    .cb   = _cb                                                                 \
+    .cb = _cb                                                                   \
 }
 
 // Прототип Сallback функции

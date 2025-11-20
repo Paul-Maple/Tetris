@@ -5,12 +5,12 @@
 #define KEY_ISR_FLAG_CLEAR(line)     (EXTI->PR1 |= EXTI_PR1_PIF##line)
 
 // Тики таймера для выжидания дребезга контактов
-/* Время подобрано, не менять !!!! 
+/* Время подобрано, не менять !!!!
    По факту время дребезга на графике не превышало 300 мкСек */
-#define KEY_CONTACT_BOUNCE_TIME      TIMER_TICKS_MS(20)
+#define KEY_CONTACT_BOUNCE_TIME      TIMER_TICKS_MS(1)
 
 // Статическая инициализация кнопки
-#define KEY_STATIC_INIT(mode, timer_cb, _name)                               \
+#define KEY_STATIC_INIT(mode, timer_cb, _name)                                  \
 {                                                                               \
     TIMER_STATIC_INIT(mode, timer_cb),                                          \
     .pressed = false,                                                           \
@@ -53,7 +53,7 @@ static void key_pressed_event_cb(timer_t *timer)
     }
     
     // Оповещение модулей об отпускании кнопки
-    tetris_key_notice(key->name, key->pressed);
+    //tetris_key_notice(key->name, key->pressed);
 }
 
 // Кнопки (Порядок имён и имена НЕ МЕНЯТЬ!!!! )
