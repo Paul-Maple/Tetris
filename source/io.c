@@ -107,16 +107,21 @@
 #define IO_ALTERNATE_MODE_MASK  (0x2)                                           /*** Mode 10 ***/
         
 // Скорость работы GPIO
-#define IO_VERY_HIGH_MODE_MASK  (0x3)                                           /*** Mode 11 ***/
+#define IO_MEDIUM_SPEED_MASK        (0x1)                                       /*** Mode 01 ***/
+#define IO_VERY_HIGH_SPEED_MASK     (0x3)                                       /*** Mode 11 ***/
 
 // Режимы подтяжки выводов
 #define IO_PULL_UP_MASK         (0x1)                                           /*** Mode 01 ***/
 #define IO_PULL_DOWN_MASK       (0x2)                                           /*** Mode 10 ***/  
 
         /*** Установка скорости работы I/O (ospeedr) ***/
+// Установка Medium speed
+#define IO_SET_MEDIUM_SPEED(pin)                                                \
+    ospeedr |= IO_SHIFT_LEFT(uint32_t, IO_MEDIUM_SPEED_MASK, (pin)*2)
+
 // Установка Very high speed
 #define IO_SET_VH_SPEED(pin)                                                    \
-    ospeedr |= IO_SHIFT_LEFT(uint32_t, IO_VERY_HIGH_MODE_MASK, (pin)*2)
+    ospeedr |= IO_SHIFT_LEFT(uint32_t, IO_VERY_HIGH_SPEED_MASK, (pin)*2)
 
         /*** Установка режимов работы I/O (moder) ***/
 // Установка режима Output
@@ -196,17 +201,35 @@
     IO_AF(pin, number);                                                         \
     IO_PULL_DOWN_SET(pin)
 
-// Alternate function, Very high speed, Pull-Down
+// Alternate function, Medium speed, Pull-Down
+#define IO_AF_M_PD(pin, number)                                                 \
+    IO_AF(pin, number);                                                         \
+    IO_PULL_DOWN_SET(pin);                                                      \
+    IO_SET_MEDIUM_SPEED(pin)
+
+// Alternate function, Medium speed, Pull-Up
+#define IO_AF_M_PU(pin, number)                                                 \
+    IO_AF(pin, number);                                                         \
+    IO_PULL_UP_SET(pin);                                                        \
+    IO_SET_MEDIUM_SPEED(pin)
+
+// Alternate function, Very High speed, Pull-Down
 #define IO_AF_VH_PD(pin, number)                                                \
     IO_AF(pin, number);                                                         \
     IO_PULL_DOWN_SET(pin);                                                      \
     IO_SET_VH_SPEED(pin)
         
+// Alternate function, Very High speed, Pull-UP
+#define IO_AF_VH_PU(pin, number)                                                \
+    IO_AF(pin, number);                                                         \
+    IO_PULL_UP_SET(pin);                                                        \
+    IO_SET_VH_SPEED(pin)
+
 // Alternate function, Pull-Up          
 #define IO_AF_PU(pin, number)                                                   \
     IO_AF(pin, number);                                                         \
     IO_PULL_UP_SET(pin)
-        
+
 // Инициализация GPIO
 void io_init(void)
 {
@@ -216,15 +239,16 @@ void io_init(void)
     
     /*** Порт А ***/
     IO_RESET();
-        IO_OUT_PD(IO_LCD_RESX_PIN);                                             // Пин для аппаратного сброса     
-        IO_AF_PD(IO_LCD_SCL_PIN, 5);                                            // Пин тактирования SPI
+        IO_OUT_HIGH_PU(IO_LCD_RESX_PIN);                                        // Пин для аппаратного сброса     
+        IO_AF_VH_PD(IO_LCD_SCL_PIN, 5);                                         // Пин тактирования SPI
         IO_OUT_LOW_PD(IO_LCD_LED_PIN);                                          // Пин подсветки дисплея
         IO_OUT_LOW_PD(IO_LCD_DCRS_PIN);                                         // Пин выбора команды/данных
-        IO_AF_PU(IO_LCD_CSX_PIN, 5);                                            // Пин выбора slave-устройства                                           
+        IO_AF_VH_PU(IO_LCD_CSX_PIN, 5);                                         // Пин выбора slave-устройства                                           
         IO_NC(5);
         IO_NC(6);
-        IO_AF_PD(IO_LCD_SDA_PIN, 5);                                            // Пин для передачи данных
-        //IO_AF_VH_PD(IO_MCO, 0);                                                    // Пин для измерения частоты
+        IO_AF_VH_PD(IO_LCD_SDA_PIN, 5);                                         // Пин для передачи данных
+        IO_AF_PD(IO_MCO, 0);                                                    // Пин для измерения частоты
+        //IO_NC(7);
         IO_NC(8);
         IO_NC(9);
         IO_NC(10);
@@ -283,10 +307,13 @@ void io_init(void)
     IO_SAVE(H);
 }
 
-void io_lcd_hard_reset(void)
+void io_resx_reset(void)
 {
     GPIOA->ODR &= ~IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
-    for (uint16_t i = 0; i < 65000; i++);
+}
+
+void io_resx_set(void)
+{
     GPIOA->ODR |= IO_SHIFT_LEFT(uint32_t, 1, IO_LCD_RESX_PIN);
 }
 

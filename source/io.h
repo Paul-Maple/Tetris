@@ -6,8 +6,11 @@
 // Инициализация GPIO
 void io_init(void);
 
-// Аппаратный сброс дисплея
-void io_lcd_hard_reset(void);
+// Установка состояния пина RESX
+void io_resx_set(void);
+
+// Сброс состояния пина RESX
+void io_resx_reset(void);
 
 // Установка состояния пина DCRS
 void io_dcrs_set(const bool state);
@@ -15,4 +18,4 @@ void io_dcrs_set(const bool state);
 // Включить подсветку дисплея
 void io_led_on(void);
 
-#endif // __GPIO_H
+#endif // __IO_H
