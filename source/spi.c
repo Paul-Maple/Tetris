@@ -2,7 +2,7 @@
 #include "nvic.h"
 #include "io.h"
 
-/*** Частота CLK = 10 MHz ***/
+/*** Частота CLK = 40 MHz ***/
 
 // Макросы для настрйки регистра DS для передачи 8 или 16 бит
 #define SPI_DS_8_BIT        (SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2)
@@ -50,7 +50,7 @@ void spi_transmit(const uint8_t data)
     while (!(SPI1->SR & SPI_SR_TXE));
     
     // Запись в регистр данных (8-ми битный доступ)
-    /* Без приведения происходит передача дополнительных 8-ми лишних нулевых бит */
+    // Без приведения происходит передача дополнительных 8-ми лишних нулевых бит
     *(( __IO uint8_t * ) &SPI1->DR) = data;
     
     // Ожидание окончания передачи
@@ -65,7 +65,7 @@ void spi_transmit_color(const uint16_t color, const uint32_t size)
     // Включить SPI
     spi_enable(SPI_DS_16_BIT);
     
-    for (uint32_t i = 0; i > size; i++)
+    for (uint32_t i = 0; i < size; i++)
     {
         // Ожидание освобождения буфера передатчика
         while (!(SPI1->SR & SPI_SR_TXE));
