@@ -240,7 +240,7 @@ void timer_processing_raised(void)
         timer_was_stopped = false;
         
         // Обход списка таймеров
-        for (list_item_t *temp_item = timer_list.head; temp_item != NULL; temp_item = temp_item->next)
+        for (list_item_t *temp_item = timer_list.head; temp_item != NULL; )
         {
             // Текущий таймер (приведение item_t к timer_t)
             timer_t * const timer = (timer_t *)temp_item;
@@ -252,6 +252,8 @@ void timer_processing_raised(void)
             // Сброс флага срабатывания таймера
             timer->data.rasied = false;
             
+            // Получаем указатель на следующий элемент
+            temp_item = temp_item->next;
             // Если таймер не активен - удаление его из списка
             if(timer_inactive(timer))
                 list_remove(&timer_list, &timer->item);
