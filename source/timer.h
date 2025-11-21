@@ -4,10 +4,10 @@
 #include "list.h"
 #include <mcu.h>
 
-// Инитервал тиков таймера
+// Инитервал тиков таймера - 32 bit
 typedef uint32_t timer_interval_t;
 
-// Частота тактирования аппаратного таймера [Гц]
+// Частота тактирования аппаратного таймера [Гц] (LSE = 32768 Гц)
 #define TIMER_CLK       MCU_LSE_FREQ
 
 // Перевод мкСек в тики 
@@ -24,6 +24,7 @@ typedef uint32_t timer_interval_t;
     .init.mode = _mode,                                                         \
     .init.handler = cb,                                                         \
     .data.reload = 0,                                                           \
+    .data.remain = 0,                                                           \
     .data.rasied = false                                                        \
 }
 
@@ -38,11 +39,11 @@ typedef void (*timer_handler_ptr) (timer_t *timer);
 
 // Перечисление режимов работы таймера
 typedef enum
-{
+{ 
+    // Одиночный режим
+    TIMER_MODE_ONE_SHOT,
     // Циклический режим
     TIMER_MODE_CONTINUOUS,
-    // Одиночный режим
-    TIMER_MODE_ONE_SHOT
 } timer_mode_t;
 
 // Структура таймера
