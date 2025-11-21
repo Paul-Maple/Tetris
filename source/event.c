@@ -52,7 +52,7 @@ void event_process(void)
                 // Вызов события
                 temp_event->cb();
             MCU_IQR_DISABLE();
-                
+            
             // Удаляем событие из списка
             list_remove(&event_list, &temp_event->item);
         }

@@ -13,14 +13,14 @@
 #define MCU_LSE_FREQ        32768
 
 // Перевод мкс в тики относительно частоты тактирования аппаратного таймера
-#define MCU_US_TO_TIC(us, f)         ((uint32_t)((float64_t)(us) * (f) / 1.0e6 + 0.5))
+#define MCU_US_TO_TIC(us, f)        ((uint32_t)((float64_t)(us) * (f) / 1.0e6 + 0.5))
 
     /*** По приколу ***/
 #define ever        __enable_interrupt();;
 
     /*** WFI ***/
 // Вход в WFI
-#define MCU_WFI_ENTER()         __WFI()
+#define MCU_WFI_ENTER()     __WFI()
 
     /*** Прерывания ***/
 // Включение/Отключение прерываний
