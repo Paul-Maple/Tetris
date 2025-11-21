@@ -64,7 +64,7 @@ void clk_init(void)
 clk_lf_src_t clk_lf_src = CLK_LF_SRC_LSI;
 
 // Производит смену источника НЧ и оповещение модулей о изменении НЧ
-static void clk_lf_src_changed(clk_lf_src_t src)
+static void clk_lf_src_changed(const clk_lf_src_t src)
 {
     clk_lf_src = src;
     
