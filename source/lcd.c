@@ -33,8 +33,6 @@ lcd_diplay_on()         - Включить дисплей
 #define LCD_CMD_COLLUM_SET              0x2A         // Установка адреса столбца
 #define LCD_CMD_LINE_SET                0x2B         // Установка адреса строки    
 #define LCD_CMD_MEMORY_SET              0x2C         // Передача данных от МК до кадровой памяти
-#define LCD_CMD_MEMORY_READ             0x2E         // Чтение памяти дисплея
-// TODO: Добавить необходимые команды, а лишние убрать
 
 // Предварительные обяъвления функций
 static void lcd_resx_set(void);

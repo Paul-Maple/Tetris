@@ -8,10 +8,11 @@
 // Перечисление цветов (Формат: 16 бит)
 enum
 {
+    // Ахроматические цвета
     LCD_COLOR_WHITE  = 0xFFFF,
     LCD_COLOR_BLACK  = 0x0000,
     LCD_COLOR_GRAY   = 0x8410,
-    
+    // Монохромные цвета
     LCD_COLOR_RED    = 0xF800,
     LCD_COLOR_GREEN  = 0x07E0,
     LCD_COLOR_BLUE   = 0x001F,
