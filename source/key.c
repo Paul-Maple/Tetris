@@ -7,7 +7,7 @@
 // Тики таймера для выжидания дребезга контактов
 /* Время подобрано, не менять !!!!
    По факту время дребезга на графике не превышало 300 мкСек */
-#define KEY_CONTACT_BOUNCE_TIME      TIMER_TICKS_MS(10)
+#define KEY_CONTACT_BOUNCE_TIME      TIMER_TICKS_MS(1)
 
 // Статическая инициализация кнопки
 #define KEY_STATIC_INIT(mode, timer_cb, _name)                                  \
@@ -52,7 +52,7 @@ static void key_pressed_event_cb(timer_t *timer)
         EXTI->FTSR1 &= ~(1 << key->name);
     }
     
-    // Оповещение модулей о состоянии кнопки
+    // Оповещение модулей об отпускании кнопки
     //tetris_key_notice(key->name, key->pressed);
 }
 
