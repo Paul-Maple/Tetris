@@ -1,4 +1,4 @@
-#include "mcu.h"
+#include <mcu.h>
 
 // Инициализация модуля
 void mcu_init(void)
