@@ -4,6 +4,7 @@
 #include "rng.h"
 /*
 // Фигуры: L, O, Z, I, T
+// TODO: Когда всё будет готово, реализовать отражение формы фигуры для разнообразия фигур
 
 // Размеры игровой области c учётом рамки: 16 x 30 кубиков
 #define TETRIS_FIELD_WIDTH      16
@@ -89,8 +90,8 @@ static bool tetris_field[TETRIS_FIELD_HEIGHT][TETRIS_FIELD_WIDTH];
 // Предварительное объявление функции проверки состояния кнопок
 static void tetris_offset_timer_cb(timer_t *timer);
 
-// Таймер для проверки состояния кнопок смещения
-static timer_t tetris_offset_timer_cb_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, tetris_offset_timer_cb);
+// Таймер для смещения фигуры
+static timer_t tetris_offset_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, tetris_offset_timer_cb);
 
 // Перечисление направлений смещения фигуры
 typedef enum
@@ -109,6 +110,14 @@ static void tetris_draw_cube(uint16_t offset_y, uint16_t offset_x, uint16_t colo
 {
     // Координаты фигуры для отрисовки
     lcd_position_t figure;
+
+    // Чёрная рамка
+    figure.x1 = tetris_figure.x + offset_x;
+    figure.x2 = figure.x1 + 10;
+    figure.y1 = tetris_figure.y + offset_y;
+    figure.y2 = figure.y1 + 10;
+    // Отрисовка фигуры
+    lcd_draw_image(figure, LCD_COLOR_BLACK);
     
     // Цветной куб
     figure.x1 = tetris_figure.x + offset_x + 1;
@@ -127,7 +136,7 @@ static void tetris_offset_timer_cb(timer_t *timer)
     // Если нажаты ВПРАВО и ВЛЕВО одновременно - выход без обработки нажатия
     //if (tetris_key[KEY_NAME_RIGHT] | tetris_key[KEY_NAME_LEFT])
     
-    // Если при смещении произошла коллизия - выход
+    // Если при смещении произошла коллизия - выход без обработки нажатия
     //if (tetris_check_collision())
         //return;
 }
@@ -146,16 +155,12 @@ void tetris_key_notice(key_name_t kay, bool state)
         case KEY_NAME_DOWN:
         case KEY_NAME_RIGHT:
         case KEY_NAME_LEFT:
-            tetris_offset_timer_cb(&tetris_offset_timer_cb_timer);
+            tetris_offset_timer_cb(&tetris_offset_timer);
             break;
     }
 }
 
-массив[строка][столбец]
-    {1, 1, 1},
-    {0, 1, 0},
-    {0, 1, 0},
-    {0, 1, 0}
+//массив[строка][столбец]
 
 // Получение формы фигуры
 static void tetris_get_shape(uint8_t type)
@@ -221,9 +226,8 @@ static void tetris_get_shape(uint8_t type)
 // Функция для отрисовки фигуры по таймеру
 static void tetris_draw_new_figure(void)
 {
-    // Выбор типа новой фигуры
+    // Рандомный выбор типа и цвета новой фигуры
     tetris_figure.type = tetris_figure_type[rng_get_number(TETRIS_FIGURE_NUMBER - 1)];
-    // Выбор нового цвета
     tetris_figure.color = tetris_colors[rng_get_number(TETRIS_FIGURE_COLORS_NUMBER - 1)];
     
     // Присвоить форму фигуры
@@ -273,9 +277,6 @@ static timer_t tetris_offset_down_timer = TIMER_STATIC_INIT(TIMER_MODE_CONTINUOU
 */
 void tetris_init(void)
 {
-    // Запуск таймера
-    //timer_start(&tetris_offset_down_timer, TIMER_TICKS_MS(100));
-    
     // Отрисовка игровой области
     lcd_position_t field;
     // Рамка
@@ -296,7 +297,16 @@ void tetris_init(void)
     field.y1 = 269;
     field.y2 = 309;
     lcd_draw_image(field, LCD_COLOR_WHITE);
+    /*
+    // Инициализация массива игрового поля нулями
+    for (uint8_t i = 0; i < TETRIS_FIELD_WIDTH; i++)
+        for (uint8_t j = 0; j < TETRIS_FIELD_HEIGHT; j++)
+            tetris_field[i][j] = 0;
     
     // Отрисовать стартовую фигуру
-    //tetris_draw_new_figure();
+    tetris_draw_new_figure();
+    
+    // Запуск таймера
+    //timer_start(&tetris_offset_down_timer, TIMER_TICKS_MS(100));
+    */
 }

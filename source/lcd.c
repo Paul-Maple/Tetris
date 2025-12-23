@@ -7,12 +7,12 @@
 #include "tetris.h"
 
 /*   Последовательность команд для инициализации ILI9341:
-io_led_on()             - Включить подсветку дисплея
-io_lcd_hard_reset()     - Аппаратный сброс
-lcd_soft_reset()        - Программный сброс
-lcd_sleep_out()         - Выход из режима сна
-lcd_lcd_configuration() - Настройка LCD
-lcd_diplay_on()         - Включить дисплей
+io_led_on()         - Включить подсветку дисплея
+io_lcd_hard_reset() - Аппаратный сброс
+lcd_soft_reset()    - Программный сброс
+lcd_sleep_out()     - Выход из режима сна
+lcd_configuration() - Настройка LCD
+lcd_diplay_on()     - Включить дисплей
 */
 
 // Состояния пина DCRS 
@@ -33,8 +33,6 @@ lcd_diplay_on()         - Включить дисплей
 #define LCD_CMD_COLLUM_SET              0x2A         // Установка адреса столбца
 #define LCD_CMD_LINE_SET                0x2B         // Установка адреса строки    
 #define LCD_CMD_MEMORY_SET              0x2C         // Передача данных от МК до кадровой памяти
-#define LCD_CMD_MEMORY_READ             0x2E         // Чтение памяти дисплея
-// TODO: Добавить необходимые команды, а лишние убрать
 
 // Предварительные обяъвления функций
 static void lcd_resx_set(void);
@@ -48,7 +46,7 @@ static list_t lcd_cmd_init_list = LIST_STATIC_INIT();
 
 // События для аппаратного сброса дисплея
 static event_t lcd_resx_set_event      = EVENT_STATIC_INIT(lcd_resx_set);
-// События отправки команд
+// События отправки команд инициализации
 static event_t lcd_soft_reset_event    = EVENT_STATIC_INIT(lcd_soft_reset);
 static event_t lcd_configuration_event = EVENT_STATIC_INIT(lcd_configuration);
 static event_t lcd_sleep_out_event     = EVENT_STATIC_INIT(lcd_sleep_out);
@@ -63,29 +61,24 @@ static bool lcd_delay_flag = false;
  * или явно, в случае если задерка для отправки не нужна   */
 static void lcd_delay_cmd_tx(timer_t * timer)
 {
-    // Сброс флага задержки
     lcd_delay_flag = false;
     
-    // Обработка списка команд 
-    for (list_item_t *temp_item = lcd_cmd_init_list.head; temp_item != NULL; )
+    while (lcd_cmd_init_list.head != NULL && !lcd_delay_flag)
     {
-        // Получить указатель на первый элемент
+        // Получаем первый элемент
         event_t * const temp_event = (event_t *)lcd_cmd_init_list.head;
-        // Вызов отправки команды
-        temp_event->cb();
-        // Получить указатель на следующий элемент списка
-        temp_item = temp_item->next;
-        // Удаляем из списка
-        list_remove(&lcd_cmd_init_list, &temp_event->item);
         
-        // Если после отправки команды установлена задержка - выход из цикла
-        if (lcd_delay_flag)
-            break;
+        // Вызываем обработчик
+        temp_event->cb();
+        
+        // Удаляем элемент из списка
+        list_remove(&lcd_cmd_init_list, &temp_event->item);  
     }
 }
 
 // Таймер для задержки отправки команд
 static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_delay_cmd_tx);
+//static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_CONTINUOUS, lcd_delay_cmd_tx);
 
 // Запуск таймера задержки отправки команд и данных по SPI
 static void lcd_delay_timer_start(timer_interval_t interval)
@@ -189,7 +182,8 @@ void lcd_init(void)
     list_insert(&lcd_cmd_init_list, &lcd_start_game_event.item);                // Start game
     
     // Запуск таймера для задержки отправки следующей команды
-    lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
+    //lcd_delay_timer_start(LCD_TIME_DELAY_120MS);
+    //timer_start(&lcd_delay_cmd_timer, LCD_TIME_DELAY_50MS);
 }
 
 void lcd_draw_image(const lcd_position_t position, const uint16_t color)

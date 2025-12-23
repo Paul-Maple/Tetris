@@ -107,7 +107,6 @@
 #define IO_ALTERNATE_MODE_MASK  (0x2)                                           /*** Mode 10 ***/
         
 // Скорость работы GPIO
-#define IO_MEDIUM_SPEED_MASK        (0x1)                                       /*** Mode 01 ***/
 #define IO_VERY_HIGH_SPEED_MASK     (0x3)                                       /*** Mode 11 ***/
 
 // Режимы подтяжки выводов
@@ -201,18 +200,6 @@
     IO_AF(pin, number);                                                         \
     IO_PULL_DOWN_SET(pin)
 
-// Alternate function, Medium speed, Pull-Down
-#define IO_AF_M_PD(pin, number)                                                 \
-    IO_AF(pin, number);                                                         \
-    IO_PULL_DOWN_SET(pin);                                                      \
-    IO_SET_MEDIUM_SPEED(pin)
-
-// Alternate function, Medium speed, Pull-Up
-#define IO_AF_M_PU(pin, number)                                                 \
-    IO_AF(pin, number);                                                         \
-    IO_PULL_UP_SET(pin);                                                        \
-    IO_SET_MEDIUM_SPEED(pin)
-
 // Alternate function, Very High speed, Pull-Down
 #define IO_AF_VH_PD(pin, number)                                                \
     IO_AF(pin, number);                                                         \
@@ -224,11 +211,6 @@
     IO_AF(pin, number);                                                         \
     IO_PULL_UP_SET(pin);                                                        \
     IO_SET_VH_SPEED(pin)
-
-// Alternate function, Pull-Up          
-#define IO_AF_PU(pin, number)                                                   \
-    IO_AF(pin, number);                                                         \
-    IO_PULL_UP_SET(pin)
 
 // Инициализация GPIO
 void io_init(void)
@@ -247,7 +229,7 @@ void io_init(void)
         IO_NC(5);
         IO_NC(6);
         IO_AF_VH_PD(IO_LCD_SDA_PIN, 5);                                         // Пин для передачи данных
-        IO_AF_PD(IO_MCO, 0);                                                    // Пин для измерения частоты
+        IO_AF_PD(IO_MCO, 0);                                                    // Пин для измерения системной частоты
         //IO_NC(7);
         IO_NC(8);
         IO_NC(9);

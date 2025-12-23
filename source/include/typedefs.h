@@ -8,7 +8,7 @@
 #include <stdint.h>
 
     /*** Типы данных ***/
-typedef double      float64_t;
+typedef double float64_t;
 
     /*** Макросы опций компилятора ***/
 // Преобразование в строку значения макроса
@@ -33,5 +33,5 @@ typedef double      float64_t;
 // Приведение указателя на член структуры к указателю на структуру
 #define CONTAINER_OF(ptr, type, member)                                         \
     ((type *)((uint8_t *)(ptr) - offsetof(type, member)))
-        
+
 #endif // __TYPEDEFS_H
