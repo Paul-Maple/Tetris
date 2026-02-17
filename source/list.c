@@ -17,12 +17,6 @@ bool list_empty(const list_t *list)
         return false;
 }
 
-// Получает указатель на следующий элемент
-static list_item_t * next(const list_item_t *item)
-{
-  return item->next;
-}
-
     /*** Вставка, удаление и поиск элемета в списке ***/
 // Вставка элемента в список (пока что в конец)
 void list_insert(list_t *list, list_item_t *item)
@@ -52,6 +46,7 @@ void list_remove(list_t *list, list_item_t *item)
 {
     ASSERT_NULL_PTR(list);
     ASSERT_NULL_PTR(item);
+    assert(list_contains(list, item));
     
     // Это первый элемент
     if (item->prev == NULL)  
@@ -75,7 +70,7 @@ bool list_contains(const list_t *list, const list_item_t *item)
     ASSERT_NULL_PTR(list);
     ASSERT_NULL_PTR(item);
     
-    for(list_item_t *temp = list->head; temp != NULL; temp = next(temp)) 
+    for(list_item_t *temp = list->head; temp != NULL; temp = item->next) 
     {
         if (temp == item) 
             return true;
