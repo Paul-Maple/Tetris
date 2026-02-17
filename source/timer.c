@@ -244,6 +244,8 @@ void timer_processing_raised(void)
         {
             // Текущий таймер (приведение item_t к timer_t)
             timer_t * const timer = (timer_t *)temp_item;
+            // Получаем указатель на следующий элемент
+            temp_item = temp_item->next;
             
             // Если текущий таймер ещё не сработал - переход к следующему сразу
             if (!timer->data.rasied)
@@ -252,8 +254,6 @@ void timer_processing_raised(void)
             // Сброс флага срабатывания таймера
             timer->data.rasied = false;
             
-            // Получаем указатель на следующий элемент
-            temp_item = temp_item->next;
             // Если таймер не активен - удаление его из списка
             if(timer_inactive(timer))
                 list_remove(&timer_list, &timer->item);
