@@ -49,6 +49,9 @@ static event_t timer_event_raise;
 // Список таймеров
 static list_t timer_list = LIST_STATIC_INIT();
 
+// Обработка сработавших таймеров
+static void timer_processing_raised(void);
+
 void timer_module_init(void)
 {
     // Инициализация события обработки таймеров
@@ -68,6 +71,9 @@ void timer_module_init(void)
         LPTIM1->ARR   =  (timer_register_t) - 1;                                                // Ограничение счёта
         LPTIM1->CR   |=  LPTIM_CR_CNTSTRT;                                                      // Режим непрерывного счёта 
         
+        // Счетчик тактовых импульсов LPTIM1 останавливается, когда ядро остановлено 
+        DBGMCU->APB1FZR1 = DBGMCU_APB1FZR1_DBG_LPTIM1_STOP;
+        
         // Разрешить прерывания у таймера
         nvic_irq_enable(LPTIM1_IRQn);
     }
@@ -84,7 +90,7 @@ void timer_init(timer_t *timer, timer_mode_t mode, timer_handler_ptr handler)
     timer->init.handler = handler;
     
     timer->data.reload = 0;
-    timer->data.rasied = false;
+    timer->data.raised = false;
 }
 
     /*** Запуск/Остановка программных таймеров ***/
@@ -130,7 +136,7 @@ void timer_start(timer_t *timer, timer_interval_t ticks)
         list_insert(&timer_list, &timer->item);
     
     timer->data.reload = ticks;
-    timer->data.rasied = false;
+    timer->data.raised = false;
     
     // Установка задержки до срабатывания 
     {
@@ -159,7 +165,7 @@ void timer_stop(timer_t *timer)
     // Удаление таймера из списка
     list_remove(&timer_list, &timer->item);
     // Сброс флага срабатывания таймера
-    timer->data.rasied = false;
+    timer->data.raised = false;
 }
 
     /*** Обрабока таймеров ***/
@@ -202,7 +208,7 @@ static bool timer_processing(void)
         if (timer_inactive(timer))
         {
             event_raise = true;
-            timer->data.rasied = true;
+            timer->data.raised = true;
             
             // Проверка режима работы таймера
             if (timer->init.mode == TIMER_MODE_ONE_SHOT)
@@ -222,7 +228,7 @@ static bool timer_processing(void)
     
     // Ограничение на минимальное время следующего срабатывания 
     time_min_reg = (timer_register_t)timer_interval_normalize(time_min);
-    // Установка нового значения срабатываня
+    // Установка нового значения срабатывания
     timer_compare_set(timer_counter_get(&LPTIM1->CNT) + time_min_reg);
     
     return event_raise;
@@ -248,11 +254,11 @@ void timer_processing_raised(void)
             temp_item = temp_item->next;
             
             // Если текущий таймер ещё не сработал - переход к следующему сразу
-            if (!timer->data.rasied)
+            if (!timer->data.raised)
                 continue;
             
             // Сброс флага срабатывания таймера
-            timer->data.rasied = false;
+            timer->data.raised = false;
             
             // Если таймер не активен - удаление его из списка
             if(timer_inactive(timer))

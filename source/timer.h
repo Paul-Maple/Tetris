@@ -17,14 +17,14 @@ typedef uint32_t timer_interval_t;
 // Перевод Сек в тики
 #define TIMER_TICKS_SEC(sec)    TIMER_TICKS_MS((sec) * 1000.0)
 
-// Статическая инициализация таймера
+// Статическая инициализация программного таймера
 #define TIMER_STATIC_INIT(_mode, cb)                                            \
 {                                                                               \
     LIST_ITEM_STATIC_INIT(),                                                    \
     .init.mode = _mode,                                                         \
     .init.handler = cb,                                                         \
     .data.reload = 0,                                                           \
-    .data.rasied = false                                                        \
+    .data.raised  = false                                                       \
 }
 
 // Инициализация модуля (Иициализируются аппаратные таймеры и событие)
@@ -68,7 +68,7 @@ typedef struct timer_s
         // Интервал до срабатывания
         timer_interval_t remain;
         // Флаг срабатывания таймера 
-        bool rasied;
+        bool raised;
     } data;
     
 } timer_s;
@@ -82,9 +82,6 @@ void timer_start(timer_t *timer, timer_interval_t ticks);
 
 // Остановка программного таймера
 void timer_stop(timer_t *timer);
-
-// Обработка сработавших таймеров
-void timer_processing_raised(void);
 
 // Обработчик прерывания аппаратного таймера LPTIM1
 void timer_lptim1_isr(void);
