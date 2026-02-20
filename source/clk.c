@@ -8,6 +8,10 @@
 static event_t clk_lse_fail_event;
 static event_t clk_lse_ready_event;
 
+// Предварительное объявление обработчиков сбоя и готовности LSE
+static void clk_lse_fail(void);
+static void clk_lse_ready(void);
+
 void clk_init(void)
 {
         /* Настройка PLL */
@@ -74,8 +78,7 @@ static void clk_lf_src_changed(clk_lf_src_t src)
 }
 
     /*** Обработчики событий LSE ***/
-// Обработчик сбоя LSE
-void clk_lse_fail(void)
+static void clk_lse_fail(void)
 {
     // Сбросить все значения в регисте BDCR
     RCC->BDCR = RCC_BDCR_BDRST;
@@ -84,8 +87,8 @@ void clk_lse_fail(void)
     // Оповещение модуля led о смене источника тактирования
     clk_lf_src_changed(CLK_LF_SRC_LSI);    
 }
-// Обработчик готовности LSE
-void clk_lse_ready(void)
+
+static void clk_lse_ready(void)
 {
     // Активация режима безопасности CSS
     RCC->BDCR |= RCC_BDCR_LSECSSON;
@@ -96,7 +99,6 @@ void clk_lse_ready(void)
 }
 
     /*** Обработчики прерываний LSE ***/
-// Обработчик прерывания сбоя LSE 
 void clk_lse_fail_isr(void)
 {   
     // Сброс флагов прерывания сбоя LSE 
@@ -110,7 +112,6 @@ void clk_lse_fail_isr(void)
     event_raise(&clk_lse_fail_event);
 }
 
-// Обработчик прерывания стабилизации LSE 
 void clk_lse_ready_isr(void)
 {
     // Сброс флага стабилизации LSE

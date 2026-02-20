@@ -14,11 +14,6 @@ extern clk_lf_src_t clk_lf_src;
 // Инициализация модуля
 void clk_init(void);
 
-// Обработчик сбоя LSE
-void clk_lse_fail(void);
-// Обработчик готовности LSE
-void clk_lse_ready(void);
-
 // Обработчик прерывания сбоя LSE
 void clk_lse_fail_isr(void);
 // Обработчик прерывания стабилизации LSE
