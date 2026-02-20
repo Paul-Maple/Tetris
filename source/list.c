@@ -44,8 +44,7 @@ void list_insert(list_t *list, list_item_t *item)
 // Удаление элемента из списка
 void list_remove(list_t *list, list_item_t *item)
 {
-    ASSERT_NULL_PTR(list);
-    ASSERT_NULL_PTR(item);
+    // Проверяем на наличие удаляемого элемента в списке
     assert(list_contains(list, item));
     
     // Это первый элемент
@@ -70,7 +69,7 @@ bool list_contains(const list_t *list, const list_item_t *item)
     ASSERT_NULL_PTR(list);
     ASSERT_NULL_PTR(item);
     
-    for(list_item_t *temp = list->head; temp != NULL; temp = item->next) 
+    for(list_item_t *temp = list->head; temp != NULL; temp = temp->next) 
     {
         if (temp == item) 
             return true;
