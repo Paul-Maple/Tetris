@@ -20,7 +20,7 @@ lcd_diplay_on()         - Включить дисплей
 #define LCD_DCRS_DATA        1    // Данные
 
 // Тики таймера для асинхронной задержки отправки команд
-#define LCD_TIME_DELAY_50MS          TIMER_TICKS_MS(50)
+#define LCD_TIME_DELAY_50MS         TIMER_TICKS_MS(50)
 #define LCD_TIME_DELAY_120MS        TIMER_TICKS_MS(120)
 
 // Команды для управления дисплеем
@@ -69,10 +69,12 @@ static void lcd_delay_cmd_tx(timer_t * timer)
     {
         // Получить указатель на первый элемент
         event_t * const temp_event = (event_t *)lcd_cmd_init_list.head;
-        // Вызов отправки команды
-        temp_event->cb();
         // Получить указатель на следующий элемент списка
         temp_item = temp_item->next;
+        
+        // Вызов отправки команды
+        temp_event->cb();
+        
         // Удаляем из списка
         list_remove(&lcd_cmd_init_list, &temp_event->item);
         
