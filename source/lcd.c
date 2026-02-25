@@ -6,6 +6,13 @@
 #include "event.h"
 #include "tetris.h"
 
+#define ILI9341
+
+#ifdef ILI9341
+    #define LCD_WIDTH       240
+    #define LCD_HEIGHT      320
+#endif // ILI9341
+
 /*   Последовательность команд для инициализации ILI9341:
 io_led_on()             - Включить подсветку дисплея
 io_lcd_hard_reset()     - Аппаратный сброс
@@ -34,7 +41,7 @@ lcd_diplay_on()         - Включить дисплей
 #define LCD_CMD_LINE_SET                0x2B         // Установка адреса строки    
 #define LCD_CMD_MEMORY_SET              0x2C         // Передача данных от МК до кадровой памяти
 
-// Предварительные обяъвления функций
+// Предварительные обяъвления функций для инициализации дисплея
 static void lcd_resx_set(void);
 static void lcd_soft_reset(void);
 static void lcd_configuration(void);
@@ -68,7 +75,7 @@ static void lcd_delay_cmd_tx(timer_t * timer)
     for (list_item_t *temp_item = lcd_cmd_init_list.head; temp_item != NULL; )
     {
         // Получить указатель на первый элемент
-        event_t * const temp_event = (event_t *)lcd_cmd_init_list.head;
+        event_t * const temp_event = (event_t *) temp_item;
         // Получить указатель на следующий элемент списка
         temp_item = temp_item->next;
         
@@ -88,12 +95,12 @@ static void lcd_delay_cmd_tx(timer_t * timer)
 static timer_t lcd_delay_cmd_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, lcd_delay_cmd_tx);
 
 // Запуск таймера задержки отправки команд и данных по SPI
-static void lcd_delay_timer_start(timer_interval_t interval)
+static void lcd_delay_timer_start(const timer_interval_t interval)
 {
-    // Запуск таймера
-    timer_start(&lcd_delay_cmd_timer, interval);
     // Установка флага задержки
     lcd_delay_flag = true;
+    // Запуск таймера
+    timer_start(&lcd_delay_cmd_timer, interval);
 }
 
 // Отправка команды по SPI
@@ -116,7 +123,7 @@ static void lcd_data_tx(const uint8_t data)
     spi_transmit(data);
 }
 
-// Отправка данных по SPI
+// Отправка цвета по SPI
 static void lcd_color_tx(const uint16_t color, const uint32_t size)
 {
     // Установить вывод DCRS в "1" для отправки данных
