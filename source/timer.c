@@ -19,7 +19,7 @@ typedef uint16_t timer_register_t;
 // Значение интервала переполнения таймера
 #define TIMER_INTERVAL_OVF      (TIMER_INTERVAL_TOP - ((timer_interval_t)TIMER_REGISTER_MAX) * 2)
 
-    /*** Аппаратный таймер LPTIM1 ***/     
+    /*** Аппаратный таймер LPTIM1 ***/
 void timer_clk_notice(void)
 {
     // Сбросить источник тактирования таймера
@@ -52,6 +52,9 @@ static list_t timer_list = LIST_STATIC_INIT();
 // Обработка сработавших таймеров
 static void timer_processing_raised(void);
 
+// Получает актуальное значение регистра счётчика 
+static timer_interval_t timer_counter_get(volatile const timer_interval_t *reg);
+
 void timer_module_init(void)
 {
     // Инициализация события обработки таймеров
@@ -59,16 +62,18 @@ void timer_module_init(void)
     
     // Инициализация аппаратного таймера LPTIM1
     {
-        // Выбор LSI в качестве источника тактирования 
+        // Выбор LSI в качестве источника тактирования
         timer_clk_notice();
         
         /* CFGR и IER могут быть установлены ТОЛЬКО когда установлен LPTIM1_CR_ENABLE = 0          *
-         * ARR, SNGSTRT и CMP могут быть установлены ТОЛЬКО когда установлен LPTIM1_CR_ENABLE = 1  *
+         * ARR, CNTSTRT и CMP могут быть установлены ТОЛЬКО когда установлен LPTIM1_CR_ENABLE = 1  *
          * ПОЭТОМУ ПОРЯДОК ЗАПИСИ В РЕГИСТРЫ ТАЙМЕРА НЕ МЕНЯТЬ !!!!!!!                             */
-        LPTIM1->CFGR &=  ~(LPTIM_CFGR_PRESC_0 | LPTIM_CFGR_PRESC_1 | LPTIM_CFGR_PRESC_2);       // Устновка делителя
+        LPTIM1->CFGR &=  ~(LPTIM_CFGR_PRESC_0 | LPTIM_CFGR_PRESC_1 | LPTIM_CFGR_PRESC_2);       // Устновка делителя (min value)
         LPTIM1->IER   =  LPTIM_IER_ARRMIE | LPTIM_IER_CMPMIE;                                   // Разрешить прерывание по совпадению с ARR или CMP
         LPTIM1->CR    =  LPTIM_CR_ENABLE;                                                       // Запустить таймер
-        LPTIM1->ARR   =  (timer_register_t) - 1;                                                // Ограничение счёта
+        LPTIM1->ARR   =  TIMER_REGISTER_MAX;                                                    // Ограничение счёта
+        LPTIM1->CMP   =  TIMER_REGISTER_MAX;                                                    // Регистр сравнения
+        while ((LPTIM1->ISR & LPTIM_ICR_CMPOKCF) == 0);
         LPTIM1->CR   |=  LPTIM_CR_CNTSTRT;                                                      // Режим непрерывного счёта 
         
         // Счетчик тактовых импульсов LPTIM1 останавливается, когда ядро остановлено 
@@ -104,7 +109,7 @@ static timer_interval_t timer_counter_get(volatile const timer_interval_t *reg)
 {
     timer_interval_t counter;
     
-    do 
+    do
     {
         counter = *reg;
     } while (counter != *reg);
@@ -113,9 +118,14 @@ static timer_interval_t timer_counter_get(volatile const timer_interval_t *reg)
 }
 
 // Установка значения регистра сравнения аппаратного таймера
-static void timer_compare_set(timer_register_t value)
+static void timer_compare_set(const timer_register_t value)
 {
-    LPTIM1->CMP = value;
+    // Ждём загрузки предыдущего значения в регистр сравнения
+    while (!(LPTIM1->ISR & LPTIM_ISR_CMPOK));
+    // Сброс CMPOK
+    LPTIM1->ICR |= LPTIM_ICR_CMPOKCF;
+    // Запись в регистр сравнения
+    LPTIM1->CMP = value;  
 }
 
 // Нормализация значения интервала к минимальному
@@ -125,6 +135,15 @@ static timer_interval_t timer_interval_normalize(timer_interval_t interval)
     TIMER_INTERVAL_MIN : interval;
 }
 
+// Проверяет, что таймер не активен
+static bool timer_inactive(const timer_t *timer)
+{
+    // return: 
+    // True  - Timer inactive
+    // False - Timer active
+    return timer->data.remain == 0 || timer->data.remain >= TIMER_INTERVAL_OVF;
+}
+
 void timer_start(timer_t *timer, timer_interval_t ticks)
 {
     ASSERT_NULL_PTR(timer);
@@ -132,6 +151,7 @@ void timer_start(timer_t *timer, timer_interval_t ticks)
     
     ticks = timer_interval_normalize(ticks);
     
+    // Если таймера ещё нет в списке таймеров, то добавляем его туда
     if (!list_contains(&timer_list, &timer->item))
         list_insert(&timer_list, &timer->item);
     
@@ -149,6 +169,9 @@ void timer_start(timer_t *timer, timer_interval_t ticks)
         // Установка времени до срабатывания
         timer->data.remain = ticks + delta;
     }
+    
+    // Проверка на активность после старта
+    assert(!timer_inactive(timer));
 }
 
 void timer_stop(timer_t *timer)
@@ -169,12 +192,6 @@ void timer_stop(timer_t *timer)
 }
 
     /*** Обрабока таймеров ***/
-// Проверяет, что таймер не активен
-static bool timer_inactive(const timer_t *timer)
-{
-    return timer->data.remain == 0 || timer->data.remain >= TIMER_INTERVAL_OVF;
-}
-
 // Обработка списка таймеров
 /* Вызывается в прерывании аппаратного таймера.         *
  * Возвращает, нужна ли обработка сработавших таймеров  */
@@ -192,11 +209,13 @@ static bool timer_processing(void)
     timer_register_last += time_delta;
     
     // Обход списка таймеров
-    for (list_item_t *temp_item = timer_list.head; temp_item != NULL; temp_item = temp_item->next)
+    for (list_item_t *temp_item = timer_list.head; temp_item != NULL;)
     {
         // Текущий таймер (приведение item к timer)
         timer_t * const timer = (timer_t *)temp_item;
-        
+        ASSERT_NULL_PTR(timer);
+        temp_item = temp_item->next;
+         
         // Если таймер не активен - пропуск интерации
         if (timer_inactive(timer))
             continue;
@@ -219,7 +238,7 @@ static bool timer_processing(void)
             {
                 timer->data.remain += timer->data.reload;
             } while (timer_inactive(timer));  
-        } 
+        }
         
         // Обновляем минимальное время срабатывания
         if (time_min > timer->data.remain)
@@ -228,9 +247,10 @@ static bool timer_processing(void)
     
     // Ограничение на минимальное время следующего срабатывания 
     time_min_reg = (timer_register_t)timer_interval_normalize(time_min);
-    // Установка нового значения срабатывания
-    timer_compare_set(timer_counter_get(&LPTIM1->CNT) + time_min_reg);
     
+    // Установка нового значения срабатывания
+    timer_compare_set((timer_register_t)timer_counter_get(&LPTIM1->CNT) + time_min_reg);
+        
     return event_raise;
 }
 
@@ -266,7 +286,6 @@ void timer_processing_raised(void)
             
             // Вызов обработчика
             ASSERT_NULL_PTR(timer->init.handler);
-            
             timer->init.handler(timer);
             
             // Если какой-то таймер был удалён - обход с начала
@@ -285,5 +304,5 @@ void timer_lptim1_isr(void)
     // Если нужна обработка сработавших таймеров 
     if (timer_processing())
         // Добавить событие в очередь на обработку
-        event_raise(&timer_event_raise); 
+        event_raise(&timer_event_raise);
 }
