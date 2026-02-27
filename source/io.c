@@ -49,9 +49,6 @@
 // Cветодиод для теста
 #define IO_LED_PIN          13
 
-// Пин для измерения частоты
-#define IO_MCO              8                                                   /*** MCO,   Port A ***/
-
 // Пины LCD (Режим AF5)
 #define IO_LCD_SCL_PIN      1                                                   /*** SCL,   Port A ***/
 #define IO_LCD_CSX_PIN      4                                                   /*** CSX,   Port A ***/
@@ -247,8 +244,6 @@ void io_init(void)
         IO_NC(5);
         IO_NC(6);
         IO_AF_VH_PD(IO_LCD_SDA_PIN, 5);                                         // Пин для передачи данных
-        IO_AF_PD(IO_MCO, 0);                                                    // Пин для измерения частоты
-        //IO_NC(7);
         IO_NC(8);
         IO_NC(9);
         IO_NC(10);
