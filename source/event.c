@@ -38,7 +38,7 @@ void event_raise(event_t *event)
 void event_process(void)
 {
     MCU_IQR_DISABLE();
-    
+
         // Обработка очереди
         while(!list_empty(&event_list))
         {
