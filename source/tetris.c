@@ -85,7 +85,7 @@ typedef struct
     uint16_t x;
     uint16_t y;
     
-    // Координаты фигуры в игровом массиве
+    // Структура координат фигуры в игровом массиве
     struct
     {
         uint8_t x;
@@ -406,14 +406,20 @@ void tetris_record_figure(void)
 // Проверка коллизий
 static bool tetris_check_collision(const tetris_offset_t offset)
 {
+    return false;
     // Пройтись по массиву игрового поля и проверить совпадения
-    
     // Если произошла коллизия с нижней границей 
+    //
+    
     // то зафиксировать фигуру в массиве игрового поля
     // tetris_record_figure();
-    // и вызвать отрисовку новой фигуры
+    
+    // Проверить строки
+    // Если они полностью заполнены - очистить
+    // 
+    
+    // И создать новую фигуру
     // tetris_create_new_figure();
-    return false;
 }
 
 // Смещение фигуры по кнопкам с проверкой коллизий
@@ -426,7 +432,7 @@ static void tetris_key_offset_timer_cb(timer_t *timer)
                      tetris_key[TETRIS_OFFSET_RIGHT].state  |
                      tetris_key[TETRIS_OFFSET_ROTATE].state;
     
-    // Начало итерации по массиву кнопок
+    // Начальный индекс для итерации по массиву кнопок
     uint8_t iterator = 1;
     // Если нажаты кнопи ВПРАВО и ВЛЕВО одновременно
     if (tetris_key[TETRIS_OFFSET_LEFT].state & tetris_key[TETRIS_OFFSET_RIGHT].state)
@@ -441,7 +447,7 @@ static void tetris_key_offset_timer_cb(timer_t *timer)
             if (!(tetris_check_collision(tetris_key[i].offset)))    
                 tetris_redrawing_figure(tetris_key[i].offset);
     
-    // Если нажата ли хотя бы одна кнопка - запуск таймера
+    // Если нажата ли хотя бы одна кнопка - запуск таймера заново
     if (state_key)
         timer_start(&tetris_key_offset_timer, TIMER_TICKS_MS(TETRIS_KEY_SIDE_OFFSET_TIME));
 }
