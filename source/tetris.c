@@ -70,6 +70,9 @@ static lcd_color_t tetris_colors[TETRIS_FIGURE_COLORS_NUMBER] =
     // TODO: Добавить ещё цвета
 };
 
+// Размер массива с формой фигуры
+#define TETRIS_SIZE_FIGURE_SAPE     5
+
 // Структура текущей фигуры для отрисовки
 typedef struct
 {
@@ -82,24 +85,24 @@ typedef struct
     uint16_t x;
     uint16_t y;
     
-    // Размер фигуры (Кол-вл кубиков по горизонтали и вертикали)
+    // Координаты фигуры в игровом массиве
+    struct
+    {
+        uint8_t x;
+        uint8_t y;
+    } game_array;
+    
+    // Реальный размер фигуры (Кол-вл кубиков по горизонтали и вертикали)
     uint8_t collum; // Столбец
     uint8_t row;    // Строка
     
+    // Массив с формой фигуры
+    bool shape[TETRIS_SIZE_FIGURE_SAPE][TETRIS_SIZE_FIGURE_SAPE];
+
 } tetris_figure_t;
 
 // Текущая активная фигура
 static tetris_figure_t tetris_figure;
-
-// Массив с формой текущей фигуры фигуры
-static bool tetris_shape[5][5] = 
-{
-    {0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0},
-};
 
 // Массив игрового поля
 static bool tetris_field[TETRIS_FIELD_HEIGHT][TETRIS_FIELD_WIDTH];
@@ -111,20 +114,20 @@ static bool tetris_field[TETRIS_FIELD_HEIGHT][TETRIS_FIELD_WIDTH];
 #define TETRIS_OFFSET_Y     TETRIS_TIMER_OFFSET
 #define TETRIS_OFFSET_X     10
 
-    /*** Время таймеров ***/
+    /*** Таймеры ***/
 // Время смещения фигуры (миллисекунды)
 #define TETRIS_DOWN_OFFSET_TIME         30
 #define TETRIS_KEY_DOWN_OFFSET_TIME     5
-#define TETRIS_KEY_SIDE_OFFSET_TIME     100
+#define TETRIS_KEY_SIDE_OFFSET_TIME     150
 
 // Предварительное объявление callback функций таймеров
-static void tetris_down_offset_timer_cb(timer_t *timer);
-static void tetris_key_offset_timer_cb(timer_t *timer);
+static void tetris_down_offset_timer_cb (timer_t *timer);
+static void tetris_key_offset_timer_cb (timer_t *timer);
 
-// Таймер для непрерывного смещения фигуры вниз и по кнопке вниз
+// Таймер для непрерывного смещения фигуры вниз и по кнопке ВНИЗ
 static timer_t tetris_down_offset_timer = TIMER_STATIC_INIT(TIMER_MODE_CONTINUOUS, tetris_down_offset_timer_cb);
 // Таймер для смещения фигуры по нажатию кнопок
-static timer_t tetris_key_offset_timer = TIMER_STATIC_INIT(TIMER_MODE_CONTINUOUS, tetris_key_offset_timer_cb);
+static timer_t tetris_key_offset_timer = TIMER_STATIC_INIT(TIMER_MODE_ONE_SHOT, tetris_key_offset_timer_cb);
 
 // Перечисление направлений смещения фигуры
 typedef enum
@@ -157,10 +160,9 @@ static tetris_key_t tetris_key[TETRIS_KEY_NUMBER] =
     {.state = false, .offset = TETRIS_OFFSET_RIGHT},
     {.state = false, .offset = TETRIS_OFFSET_ROTATE},
 };
-//{false, false, false, false};
 
 // Отрисовка одного куба фигуры 10х10 (цветной куб - 8х8)
-static void tetris_draw_cube(uint16_t offset_y, uint16_t offset_x, lcd_color_t color)
+static void tetris_draw_cube(const uint16_t offset_y, const uint16_t offset_x, const lcd_color_t color)
 {
     // Координаты фигуры для отрисовки
     lcd_position_t figure;
@@ -176,7 +178,7 @@ static void tetris_draw_cube(uint16_t offset_y, uint16_t offset_x, lcd_color_t c
 
 // Вращение фигуры
 static void tetris_rotate_figure(void)
-{   
+{
     // Временный массив формы фигуры
     bool temp_shape[5][5];
     
@@ -185,11 +187,11 @@ static void tetris_rotate_figure(void)
         for (uint8_t j = 0; j < 5; j++)
         {
             // Копирование
-            temp_shape[i][j] = tetris_shape[i][j];
+            temp_shape[i][j] = tetris_figure.shape[i][j];
             // Очистка
             if (temp_shape[i][j] == 1)
             {
-                tetris_shape[i][j] = 0;
+                tetris_figure.shape[i][j] = 0;
                 tetris_draw_cube(i * TETRIS_CUBE_SIZE, j * TETRIS_CUBE_SIZE, LCD_COLOR_WHITE);
             }
         }
@@ -200,7 +202,7 @@ static void tetris_rotate_figure(void)
             if (temp_shape[i][j] == 1)
             {
                 // Поворачиваем относительно текущих размеров
-                tetris_shape[j][tetris_figure.row - 1 - i] = 1;
+                tetris_figure.shape[j][tetris_figure.row - 1 - i] = 1;
                 tetris_draw_cube(j * TETRIS_CUBE_SIZE, (tetris_figure.row - 1 - i) * TETRIS_CUBE_SIZE, tetris_figure.color);
             }
     
@@ -211,7 +213,7 @@ static void tetris_rotate_figure(void)
 }
 
 // Оповещение модуля о состоянии кнопки
-void tetris_key_notice(key_name_t key, bool state)
+void tetris_key_notice(const key_name_t key, const bool state)
 {
     // Изменение состояния кнопки
     tetris_key[key].state = state;
@@ -220,31 +222,31 @@ void tetris_key_notice(key_name_t key, bool state)
     switch (key) 
     {
         case KEY_NAME_DOWN:
-            // Если кнопка ВНИЗ была нажата
-            if (state)
-                // Запустить таймер на 10 мсек
-                timer_start(&tetris_down_offset_timer, TIMER_TICKS_MS(TETRIS_KEY_DOWN_OFFSET_TIME));
-            else
-                // Запустить таймер на 20 мсек
-                timer_start(&tetris_down_offset_timer, TIMER_TICKS_MS(TETRIS_DOWN_OFFSET_TIME));
+            // Обработка состояния кнопки
+            state ?
+                timer_start(&tetris_down_offset_timer, TIMER_TICKS_MS(TETRIS_KEY_DOWN_OFFSET_TIME)) :   // Срабатывание чаще
+                timer_start(&tetris_down_offset_timer, TIMER_TICKS_MS(TETRIS_DOWN_OFFSET_TIME));        // Срабатывание реже
             break;
         case KEY_NAME_RIGHT:
         case KEY_NAME_LEFT:
         case KEY_NAME_ROTATE:
-            timer_start(&tetris_key_offset_timer, TIMER_TICKS_MS(TETRIS_KEY_SIDE_OFFSET_TIME));
+            // Обработка состояния кнопки
+            if (state)
+                //timer_start(&tetris_key_offset_timer, TIMER_TICKS_MS(TETRIS_KEY_SIDE_OFFSET_TIME));    // Запуск таймера
+                tetris_key_offset_timer_cb(&tetris_key_offset_timer);
             break;
         default:
             assert(false);
-    }      
+    }
 }
 
-// Получение формы фигуры
-static void tetris_get_shape(tetris_figure_type_t type)
+// Инициализация формы фигуры
+static void tetris_init_shape(const tetris_figure_type_t type)
 {
     // Обнуление массива с формой фигуры
-    for (uint8_t i = 0; i < 5; i++)
-        for (uint8_t j = 0; j < 5; j++)
-            tetris_shape[i][j] = 0;
+    for (uint8_t i = 0; i < TETRIS_SIZE_FIGURE_SAPE; i++)
+        for (uint8_t j = 0; j < TETRIS_SIZE_FIGURE_SAPE; j++)
+            tetris_figure.shape[i][j] = 0;
     
     // Присвоение формы
     switch(type)
@@ -252,46 +254,46 @@ static void tetris_get_shape(tetris_figure_type_t type)
         case TETRIS_FIGURE_TYPE_O:
             tetris_figure.collum = 2;
             tetris_figure.row = 2;
-            tetris_shape[0][0] = 1;
-            tetris_shape[0][1] = 1;
-            tetris_shape[1][0] = 1;
-            tetris_shape[1][1] = 1;
+            tetris_figure.shape[0][0] = 1;
+            tetris_figure.shape[0][1] = 1;
+            tetris_figure.shape[1][0] = 1;
+            tetris_figure.shape[1][1] = 1;
             break;
             
         case TETRIS_FIGURE_TYPE_Z:
             tetris_figure.collum = 3;
             tetris_figure.row = 2;
-            tetris_shape[0][0] = 1;
-            tetris_shape[0][1] = 1;
-            tetris_shape[1][1] = 1;
-            tetris_shape[1][2] = 1;
+            tetris_figure.shape[0][0] = 1;
+            tetris_figure.shape[0][1] = 1;
+            tetris_figure.shape[1][1] = 1;
+            tetris_figure.shape[1][2] = 1;
             break;
             
         case TETRIS_FIGURE_TYPE_L:
             tetris_figure.collum = 2;
             tetris_figure.row = 3;
-            tetris_shape[0][0] = 1;
-            tetris_shape[1][0] = 1;
-            tetris_shape[2][0] = 1;
-            tetris_shape[0][1] = 1;
+            tetris_figure.shape[0][0] = 1;
+            tetris_figure.shape[1][0] = 1;
+            tetris_figure.shape[2][0] = 1;
+            tetris_figure.shape[0][1] = 1;
             break;
             
         case TETRIS_FIGURE_TYPE_T:
             tetris_figure.collum = 3;
             tetris_figure.row = 2;
-            tetris_shape[0][0] = 1;
-            tetris_shape[0][1] = 1;
-            tetris_shape[0][2] = 1;
-            tetris_shape[1][1] = 1;
+            tetris_figure.shape[0][0] = 1;
+            tetris_figure.shape[0][1] = 1;
+            tetris_figure.shape[0][2] = 1;
+            tetris_figure.shape[1][1] = 1;
             break;
             
         case TETRIS_FIGURE_TYPE_I:
             tetris_figure.collum = 4;
             tetris_figure.row = 3;
-            tetris_shape[1][0] = 1;
-            tetris_shape[1][1] = 1;
-            tetris_shape[1][2] = 1;
-            tetris_shape[1][3] = 1;
+            tetris_figure.shape[1][0] = 1;
+            tetris_figure.shape[1][1] = 1;
+            tetris_figure.shape[1][2] = 1;
+            tetris_figure.shape[1][3] = 1;
             break;
             
         default:
@@ -299,53 +301,97 @@ static void tetris_get_shape(tetris_figure_type_t type)
     }
 }
 
-// Перерисовка фигуры при смещении
-static void tetris_redrawing_figure(tetris_offset_t offset)
+// Смещение фигуры вниз на 1 пиксель
+static void tetris_offset_down()
 {
     // Координаты фигуры для отрисовки
     lcd_position_t figure;
     
+    for (uint8_t i = 0; i < tetris_figure.row; i++)         // Строки
+        for (uint8_t j = 0; j < tetris_figure.collum; j++)  // Столбцы
+            if (tetris_figure.shape[i][j] == 1)
+            {
+                // Координаты смещения по осям
+                uint16_t offset_x = tetris_figure.x + j * TETRIS_CUBE_SIZE;
+                uint16_t offset_y = tetris_figure.y + i * TETRIS_CUBE_SIZE;
+                
+                // Очистить верхнюю полосу (полоса 1 пиксель)
+                TETRIS_DRAW_FIELD(figure,
+                                  offset_x,
+                                  offset_x + TETRIS_CUBE_SIZE,
+                                  offset_y + TETRIS_CUBE_SIZE - 1,
+                                  offset_y + TETRIS_CUBE_SIZE - 1,
+                                  LCD_COLOR_WHITE);
+                
+                // Цветная полоcа внизу (полоса 1 пиксель)
+                TETRIS_DRAW_FIELD(figure,
+                                 offset_x + TETRIS_CUBE_SIZE - 9,
+                                 offset_x + TETRIS_CUBE_SIZE - 1,
+                                 offset_y,
+                                 offset_y,
+                                 tetris_figure.color);
+            }
+    
+    // Изменяем координату фигуры
+    tetris_figure.y -= TETRIS_OFFSET_Y;
+}
+
+// Смещение фигуры влево на 1 кубик
+static void tetris_offset_left()
+{
+    // Пройтись по всем слолбцам
+    for (uint8_t i = 0; i < tetris_figure.row; i++)          // Строки
+        for (uint8_t j = 0; j < tetris_figure.collum; j++)   // Столбцы
+            if (tetris_figure.shape[i][j] == 1)
+            {
+                // Очистить текущий кубик
+                tetris_draw_cube(i * TETRIS_CUBE_SIZE, j * TETRIS_CUBE_SIZE, LCD_COLOR_WHITE);
+                // Вызов отрисовки одного куба фигуры слева
+                tetris_draw_cube(i * TETRIS_CUBE_SIZE, (j - 1) * TETRIS_CUBE_SIZE, tetris_figure.color);
+            }
+    // Изменяем координату фигуры
+    tetris_figure.x -= TETRIS_OFFSET_X;
+}
+
+// Смещение фигуры вправо на 1 кубик
+static void tetris_offset_right()
+{
+    // Пройтись по всем слолбцам
+    for (uint8_t i = 0; i < tetris_figure.row; i++)             // Строки
+        for (int8_t j = tetris_figure.collum; j >= 0 ; j--)     // Столбцы
+            if (tetris_figure.shape[i][j] == 1)
+            {
+                // Очистить текущий кубик
+                tetris_draw_cube(i * TETRIS_CUBE_SIZE, j * TETRIS_CUBE_SIZE, LCD_COLOR_WHITE);
+                // Вызов отрисовки одного куба фигуры справа
+                tetris_draw_cube(i * TETRIS_CUBE_SIZE, (j + 1) * TETRIS_CUBE_SIZE, tetris_figure.color);
+            }
+    // Изменяем координату фигуры
+    tetris_figure.x += TETRIS_OFFSET_X;
+}
+
+// Перерисовка фигуры при смещении
+static void tetris_redrawing_figure(const tetris_offset_t offset)
+{
+    // Обработка смещения
     switch (offset)
     {
         case TETRIS_OFFSET_DOWN:
-        // Смещение вниз (на 1 пиксель)
-        for (uint8_t i = 0; i < tetris_figure.row; i++)         // Строки
-            for (uint8_t j = 0; j < tetris_figure.collum; j++)  // Столбцы
-                if (tetris_shape[i][j] == 1)
-                {
-                    // Координаты смещения по осям
-                    uint16_t offset_x = tetris_figure.x + j * TETRIS_CUBE_SIZE;
-                    uint16_t offset_y = tetris_figure.y + i * TETRIS_CUBE_SIZE;
-                    
-                    // Очистить верхнюю полосу
-                    TETRIS_DRAW_FIELD(figure,
-                                      offset_x,
-                                      offset_x + TETRIS_CUBE_SIZE,
-                                      offset_y + TETRIS_CUBE_SIZE - 1,
-                                      offset_y + TETRIS_CUBE_SIZE - 1,
-                                      LCD_COLOR_WHITE);
-                    
-                    // Цветная полоcа внизу 
-                    TETRIS_DRAW_FIELD(figure,
-                                     offset_x + TETRIS_CUBE_SIZE - 9,
-                                     offset_x + TETRIS_CUBE_SIZE - 1,
-                                     offset_y,
-                                     offset_y,
-                                     tetris_figure.color);
-                }
-        
-        // Изменяем координату фигуры
-        tetris_figure.y -= TETRIS_OFFSET_Y;
-        break;
+            tetris_offset_down();
+            break;
         
         case TETRIS_OFFSET_LEFT:
+            tetris_offset_left();
+            break;      
+        
         case TETRIS_OFFSET_RIGHT:
-            //
+            tetris_offset_right();
             break;
+        
         case TETRIS_OFFSET_ROTATE:
             tetris_rotate_figure();
             break;
-            
+        
         default:
             assert(false);
     }
@@ -358,12 +404,15 @@ void tetris_record_figure(void)
 }
 
 // Проверка коллизий
-static bool tetris_check_collision(tetris_offset_t offset)
+static bool tetris_check_collision(const tetris_offset_t offset)
 {
     // Пройтись по массиву игрового поля и проверить совпадения
     
-    // Если произошла коллизия с нижней границей - зафиксировать фигуру в массиве игрового поля
+    // Если произошла коллизия с нижней границей 
+    // то зафиксировать фигуру в массиве игрового поля
     // tetris_record_figure();
+    // и вызвать отрисовку новой фигуры
+    // tetris_create_new_figure();
     return false;
 }
 
@@ -372,17 +421,33 @@ static void tetris_key_offset_timer_cb(timer_t *timer)
 {
     ASSERT_NULL_PTR(timer);
     
-    // Проверить все 3 кнопки (Кнопка ВНИЗ проверяется отдельно, из за смещения по пикселю)
-    for (uint8_t i = 1; i < TETRIS_KEY_NUMBER; i++)
+    // Определить нажата ли хотя бы одна кнопка
+    bool state_key = tetris_key[TETRIS_OFFSET_LEFT].state   |
+                     tetris_key[TETRIS_OFFSET_RIGHT].state  |
+                     tetris_key[TETRIS_OFFSET_ROTATE].state;
+    
+    // Начало итерации по массиву кнопок
+    uint8_t iterator = 1;
+    // Если нажаты кнопи ВПРАВО и ВЛЕВО одновременно
+    if (tetris_key[TETRIS_OFFSET_LEFT].state & tetris_key[TETRIS_OFFSET_RIGHT].state)
+        // Проверить только кнопку поворота
+        iterator = 3;
+        
+    // Проверить только 1 или 3 кнопки (Кнопка ВНИЗ проверяется отдельно, из за смещения по 1 пикселю)
+    for (uint8_t i = iterator; i < TETRIS_KEY_NUMBER; i++)
         // Если кнопка нажата - проверить коллизию
         if (tetris_key[i].state)
             // Если коллизии нет - обработать смещение
             if (!(tetris_check_collision(tetris_key[i].offset)))    
                 tetris_redrawing_figure(tetris_key[i].offset);
+    
+    // Если нажата ли хотя бы одна кнопка - запуск таймера
+    if (state_key)
+        timer_start(&tetris_key_offset_timer, TIMER_TICKS_MS(TETRIS_KEY_SIDE_OFFSET_TIME));
 }
 
 // Функция для отрисовки фигуры по таймеру
-static void tetris_draw_new_figure(void)
+static void tetris_create_new_figure(void)
 {
     // Выбор типа новой фигуры
     tetris_figure.type = tetris_figure_type[rng_get_number(TETRIS_FIGURE_NUMBER - 1)];
@@ -390,11 +455,14 @@ static void tetris_draw_new_figure(void)
     tetris_figure.color = tetris_colors[rng_get_number(TETRIS_FIGURE_COLORS_NUMBER - 1)];
     
     // Присвоить форму фигуре
-    tetris_get_shape(tetris_figure.type);
+    tetris_init_shape(tetris_figure.type);
     
     // Установка начального положения новой фигуры
     tetris_figure.x = 69;
-    tetris_figure.y = 209; // 308
+    tetris_figure.y = 279;
+    
+    tetris_figure.game_array.x = ((69 + 1) / 10);                           // 7
+    tetris_figure.game_array.y = TETRIS_FIELD_HEIGHT - ((279 + 1) / 10);    // 30 - 21 = 9
     
     // Отрисовка всех секций (кубиков) фигуры
     // Происходит один раз при создании новой фигуры
@@ -402,7 +470,7 @@ static void tetris_draw_new_figure(void)
     // а не фигуры целиком
     for (uint8_t i = 0; i < tetris_figure.row; i++)         // Строка
         for (uint8_t j = 0; j < tetris_figure.collum; j++)  // Столбец
-            if (tetris_shape[i][j] == 1)
+            if (tetris_figure.shape[i][j] == 1)
                 // Вызов отрисовки одного куба фигуры
                 tetris_draw_cube(i * TETRIS_CUBE_SIZE, j * TETRIS_CUBE_SIZE, tetris_figure.color);
 }
@@ -416,8 +484,6 @@ static void tetris_down_offset_timer_cb(timer_t *timer)
     if (!(tetris_check_collision(TETRIS_OFFSET_DOWN)))
         // Сместить фигуру вниз
         tetris_redrawing_figure(TETRIS_OFFSET_DOWN);
-    else
-        tetris_draw_new_figure();
 }
 
 void tetris_init(void)
@@ -430,7 +496,7 @@ void tetris_init(void)
     // Запуск таймера
     //timer_start(&tetris_down_offset_timer, TIMER_TICKS_MS(TETRIS_DOWN_OFFSET_TIME));
     
-    // Область для отрисовки
+    // Область для отрисовки:
     lcd_position_t field;
     // Рамка
     TETRIS_DRAW_FIELD(field, 0, LCD_WIDTH - 1, 0, LCD_HEIGHT - 1, LCD_COLOR_GRAY);
@@ -439,6 +505,6 @@ void tetris_init(void)
     // Поле для счёта
     TETRIS_DRAW_FIELD(field, 189, 219, 269, 309, LCD_COLOR_WHITE);
     
-    // Отрисовать стартовую фигуру
-    tetris_draw_new_figure();
+    // Создать стартовую фигуру
+    tetris_create_new_figure();
 }
