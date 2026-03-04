@@ -6,13 +6,6 @@
 #include "event.h"
 #include "tetris.h"
 
-#define ILI9341
-
-#ifdef ILI9341
-    #define LCD_WIDTH       240
-    #define LCD_HEIGHT      320
-#endif // ILI9341
-
 /*   Последовательность команд для инициализации ILI9341:
 io_led_on()             - Включить подсветку дисплея
 io_lcd_hard_reset()     - Аппаратный сброс
@@ -215,7 +208,7 @@ void lcd_draw_image(const lcd_position_t position, const uint16_t color)
     lcd_data_tx(position.y2 >> 8);
     lcd_data_tx(position.y2);
     
-    // Отправка команды записи цвета в память и цвета области 
+    // Отправка команды записи цвета области в память 
     lcd_cmd_tx(LCD_CMD_MEMORY_SET);
     lcd_color_tx(color, (uint32_t)((position.x2 - position.x1 + 1) * (position.y2 - position.y1 + 1)));
 }
@@ -226,9 +219,9 @@ void lcd_clear(void)
     const lcd_position_t position = 
     {
         .x1 = 0,
-        .x2 = 239,
+        .x2 = LCD_WIDTH - 1,
         .y1 = 0,
-        .y2 = 319
+        .y2 = LCD_HEIGHT - 1
     };
     
     lcd_draw_image(position, LCD_COLOR_WHITE); 

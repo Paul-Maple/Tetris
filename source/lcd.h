@@ -4,6 +4,12 @@
 #include <typedefs.h>
 
 /*** Разрешение дисплея 240x320 ***/
+#define ILI9341
+
+#ifdef ILI9341
+    #define LCD_WIDTH       240
+    #define LCD_HEIGHT      320
+#endif // ILI9341
 
 // Перечисление цветов (Формат: 16 бит)
 enum
@@ -22,6 +28,9 @@ enum
     LCD_COLOR_PURPLE = 0xBB59,
     LCD_COLOR_PINK   = 0xF810,
 };
+
+// Цвет
+typedef uint16_t lcd_color_t;
 
 // Структура координат записи
 typedef struct
