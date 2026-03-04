@@ -23,7 +23,7 @@ __noreturn void main(void)
     clk_init();
     timer_module_init();
     key_init();
-    //rng_init();
+    rng_init();
     lcd_init();
     led_init();
     /*  В этом проекте Stop 2 Mode включать нельзя    *
