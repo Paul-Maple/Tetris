@@ -9,7 +9,7 @@
 #define SPI_DS_16_BIT       (SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 | SPI_CR2_DS_3)
 
 // Подготовка SPI к передаче
-static void spi_preparing(uint32_t SPI_DS)
+static void spi_preparing(const uint32_t SPI_DS)
 {
     // Включить тактирование SPI1
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
@@ -24,7 +24,7 @@ static void spi_preparing(uint32_t SPI_DS)
 }
 
 // Включение SPI
-static void spi_enable(uint32_t SPI_DS)
+static void spi_enable(const uint32_t SPI_DS)
 {
     // Подготовка тактирования и настройка шины SPI
     spi_preparing(SPI_DS);

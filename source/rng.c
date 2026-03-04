@@ -10,7 +10,7 @@ void rng_init(void)
     RNG->CR |= RNG_CR_RNGEN;
 }
 
-uint8_t rng_get_number(uint8_t max_number)
+uint8_t rng_get_number(const uint8_t max_number)
 {
     // Ждём пока регистр не будет доступен для чтения
     while (!(RNG->SR & RNG_SR_DRDY));
