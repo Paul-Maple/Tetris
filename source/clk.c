@@ -25,9 +25,11 @@ void clk_init(void)
     // Сбросить регистр PLLCFGR
     RCC->PLLCFGR = 0x0;
     
-    // f(PLLCLK) = (( 4 MHz / 1 ) * 80 ) / 4 = 80 MHz                           // PLLM = 1
+    // f(PLLCLK) = (( 4 MHz / 1 ) * 80 ) / 4 = 80 MHz
+    // f(PLLQ)   = (( 4 MHz / 1 ) * 80 ) / 8 = 40 MHz                           // PLLM = 1
     RCC->PLLCFGR =  RCC_PLLCFGR_PLLN_4 | RCC_PLLCFGR_PLLN_6 |                   // PLLN = 80
-                    RCC_PLLCFGR_PLLR_0;                                         // PLLR = 4
+                    RCC_PLLCFGR_PLLR_0 |                                        // PLLR = 4
+                    RCC_PLLCFGR_PLLQ_0 | RCC_PLLCFGR_PLLQ_1;                    // PLLQ = 8
     
     // Вход PLL - MSI
     RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_MSI;
@@ -36,8 +38,8 @@ void clk_init(void)
     RCC->CR |= RCC_CR_PLLON;
     // Ожидание готовности PLL
     while (!(RCC->CR & RCC_CR_PLLRDY));
-    // Вкл. выход PLLCLK
-    RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
+    // Вкл. выход PLLCLK и PLLQ
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLQEN; 
     // PLL selected as system clock
     RCC->CFGR |= RCC_CFGR_SW_PLL;
     // Ожидание переключения системной частоты на PLL
