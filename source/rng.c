@@ -4,8 +4,8 @@ void rng_init(void)
 {
     // Включить тактирование генератора случайных чисел
     RCC->AHB2ENR |= RCC_AHB2ENR_RNGEN;
-    // Источник тактирования RNG - MSI
-    RCC->CCIPR |= RCC_CCIPR_CLK48SEL_0 | RCC_CCIPR_CLK48SEL_1;
+    // Источник тактирования RNG - PLLQ
+    RCC->CCIPR |= RCC_CCIPR_CLK48SEL_1;
     // Включить генератор случайных чисел
     RNG->CR |= RNG_CR_RNGEN;
 }
