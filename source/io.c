@@ -66,10 +66,10 @@
 #define IO_JTDI_PIN         15                                                  /*** JTAG pin ***/
 
 // Пины кнопок (Все порт С)
-#define IO_BUTTON_0         0                                                   /***  ***/
-#define IO_BUTTON_1         1                                                   /***  ***/
-#define IO_BUTTON_2         2                                                   /***  ***/
-#define IO_BUTTON_3         3                                                   /***  ***/
+#define IO_BUTTON_0         0                                                   /*** KEY_NAME_DOWN ***/
+#define IO_BUTTON_1         1                                                   /*** KEY_NAME_RIGHT ***/
+#define IO_BUTTON_2         2                                                   /*** KEY_NAME_LEFT ***/
+#define IO_BUTTON_3         3                                                   /*** KEY_NAME_ROTATE ***/
 
        /*** Сброс и установка значений в регистрах I/O ***/
 // Сброс регистров I/O

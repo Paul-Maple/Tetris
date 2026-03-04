@@ -57,6 +57,6 @@ void event_process(void)
             list_remove(&event_list, &temp_event->item);
         }
         
-        MCU_WFI_ENTER();
+        //MCU_WFI_ENTER();
     MCU_IQR_ENABLE();
 }
