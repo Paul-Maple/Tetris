@@ -53,7 +53,7 @@ static void key_pressed_event_cb(timer_t *timer)
     }
     
     // Оповещение модулей об отпускании кнопки
-    //tetris_key_notice(key->name, key->pressed);
+    tetris_key_notice(key->name, key->pressed);
 }
 
 // Кнопки (Порядок имён и имена НЕ МЕНЯТЬ!!!! )
