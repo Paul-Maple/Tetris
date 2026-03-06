@@ -245,41 +245,35 @@ static void tetris_draw_figure(void)
 // Обработка вращения фигуры
 static void tetris_processing_rotate_figure(void)
 {
-    // Временный массив формы фигуры
+  // Временный массив формы фигуры
     cube_t temp_shape[TETRIS_SIZE_FIGURE_SAPE][TETRIS_SIZE_FIGURE_SAPE];
+    // Минимальные координаты для сохранения положения фигуры при вращении
+    uint8_t min_x = 0xFF, min_y = 0xFF;
     
-    // Копируем значения во временный массив и очищаем старую фигуру
+    // Копирование и стирание старой фигуры
     for (uint8_t i = 0; i < TETRIS_SIZE_FIGURE_SAPE; i++)
         for (uint8_t j = 0; j < TETRIS_SIZE_FIGURE_SAPE; j++)
         {
-            // Копирование
-            temp_shape[i][j].state = tetris_figure.shape[i][j].state;
-            temp_shape[i][j].x = tetris_figure.shape[i][j].x;
-            temp_shape[i][j].y = tetris_figure.shape[i][j].y;
-            
-            // Очистка оригинальной фигуры
-            if (temp_shape[i][j].state)
+            temp_shape[i][j] = tetris_figure.shape[i][j];
+            if (temp_shape[i][j].state) 
             {
+              // Обновляем минимальные координаты
+                if (temp_shape[i][j].x < min_x) min_x = temp_shape[i][j].x;
+                if (temp_shape[i][j].y < min_y) min_y = temp_shape[i][j].y;
+                // Очистка оригинальной фигуры
                 tetris_figure.shape[i][j].state = 0;
-                tetris_figure.shape[i][j].x = 0;
-                tetris_figure.shape[i][j].y = 0;
                 tetris_draw_cube(tetris_figure.shape[i][j], LCD_COLOR_WHITE);
             }
         }
     
-    // Поворачиваем фигуру на 90 градусов по часовой стрелке
-    for (uint8_t i = 0; i < tetris_figure.row; i++)
-        for (uint8_t j = 0; j < tetris_figure.collum; j++)
+    // Поворот фигуры
+    for (uint8_t i = 0; i < tetris_figure.row; i++) 
+        for (uint8_t j = 0; j < tetris_figure.collum; j++) 
             if (temp_shape[i][j].state)
             {
-                // Поворачиваем относительно текущих размеров
-                //tetris_figure.shape[j][tetris_figure.row - 1 - i].state = 1;
-                //tetris_figure.shape[j][tetris_figure.row - 1 - i].x = temp_shape[i][j].x;
-                //tetris_figure.shape[j][tetris_figure.row - 1 - i].y = temp_shape[i][j].y;
-                
-                tetris_figure.shape[j][i].state = 1;
-                tetris_figure.shape[j][i].x = temp_shape[i][j].x;
-                tetris_figure.shape[j][i].y = temp_shape[i][j].y;
+                tetris_figure.shape[j][tetris_figure.row - 1 - i].state = 1;
+                tetris_figure.shape[j][tetris_figure.row - 1 - i].x = min_x + tetris_figure.row - 1 - i;
+                tetris_figure.shape[j][tetris_figure.row - 1 - i].y = min_y + j;
             }
     
     // Обновляем размеры после поворота
