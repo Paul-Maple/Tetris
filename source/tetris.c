@@ -28,7 +28,7 @@
 // Размер одного куба фигуры (В пикселях)
 #define TETRIS_CUBE_SIZE            10
 #define TETRIS_COLOR_CUBE_SIZE      8
-        
+
 // Координаты для отрисовки новой фигуры
 #define TETRIS_START_COORDINATE_X       69
 #define TETRIS_START_COORDINATE_Y       269
@@ -654,7 +654,7 @@ static void tetris_down_offset_timer_cb(timer_t *timer)
     tetris_processing_offset_down(TETRIS_ACTION_CHECK_COLLISION);
 }
 
-// Функция для отрисовки фигуры по таймеру
+// Функция для создания новой фигуры
 static void tetris_create_new_figure(void)
 {
     // Выбор типа новой фигуры
