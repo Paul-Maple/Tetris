@@ -29,3 +29,4 @@ tetris_figure_type_t
 tetris_figure_t
 tetris_offset_t
 tetris_key_t
+tetris_action_t
