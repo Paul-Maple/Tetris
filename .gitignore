@@ -37,3 +37,7 @@ settings/
 Thumbs.db
 *.tmp
 *.temp
+
+# Файлы с тестами
+test.c
+test.h
