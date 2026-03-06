@@ -4,7 +4,8 @@
 #include <typedefs.h>
 
 /*** Разрешение дисплея 240x320 ***/
-#define ILI9341
+#define ILI9341             // 3.2 дюйма
+//#define ILI9325           // 2.4 дюйма
 
 #ifdef ILI9341
     #define LCD_WIDTH       240
