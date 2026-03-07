@@ -41,3 +41,6 @@ Thumbs.db
 # Файлы с тестами
 test.c
 test.h
+
+test/
+.test/
