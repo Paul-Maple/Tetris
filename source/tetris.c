@@ -85,7 +85,7 @@ typedef struct
     // Координаты в массиве игрового поля 16 х 30
     uint8_t x;
     uint8_t y;
-} cube_t;
+} tetris_cube_t;
     
 // Структура текущей фигуры для отрисовки
 typedef struct
@@ -96,7 +96,7 @@ typedef struct
     tetris_figure_type_t type;
     
     // Массив формы фигуры с кубиками (5 х 5 клеток)
-    cube_t shape[TETRIS_SIZE_FIGURE_SAPE][TETRIS_SIZE_FIGURE_SAPE];
+    tetris_cube_t shape[TETRIS_SIZE_FIGURE_SAPE][TETRIS_SIZE_FIGURE_SAPE];
     
     // Реальный размер фигуры (Кол-вл кубиков по горизонтали и вертикали)
     uint8_t collum; // Столбец
@@ -173,7 +173,7 @@ static tetris_key_t tetris_key[TETRIS_KEY_NUMBER] =
 };
 
 // Отрисовка одного куба фигуры 10х10 (цветной куб - 8х8)
-static void tetris_draw_cube(const cube_t cube, lcd_color_t color)
+static void tetris_draw_cube(const tetris_cube_t cube, lcd_color_t color)
 {
     // Координаты фигуры для отрисовки
     lcd_position_t figure;
@@ -226,7 +226,7 @@ typedef enum
 } tetris_action_t;
 
 // Проверка коллизий
-static bool tetris_check_collision(cube_t cube, const tetris_offset_t offset)
+static bool tetris_check_collision(tetris_cube_t cube, const tetris_offset_t offset)
 {
     
     return false;
@@ -246,7 +246,7 @@ static void tetris_draw_figure(void)
 static void tetris_processing_rotate_figure(void)
 {
   // Временный массив формы фигуры
-    cube_t temp_shape[TETRIS_SIZE_FIGURE_SAPE][TETRIS_SIZE_FIGURE_SAPE];
+    tetris_cube_t temp_shape[TETRIS_SIZE_FIGURE_SAPE][TETRIS_SIZE_FIGURE_SAPE];
     // Минимальные координаты для сохранения положения фигуры при вращении
     uint8_t min_x = 0xFF, min_y = 0xFF;
     
