@@ -27,7 +27,7 @@ lcd_color_t
 
 tetris_t
 tetris_figure_type_t
-cube_t
+tetris_cube_t
 tetris_figure_t
 tetris_offset_t
 tetris_key_t
