@@ -86,7 +86,7 @@ typedef struct
     uint8_t x;
     uint8_t y;
 } tetris_cube_t;
-    
+
 // Структура текущей фигуры для отрисовки
 typedef struct
 {
@@ -159,7 +159,7 @@ typedef struct
     // Состояние
     bool state;
     // Тип смещения
-    tetris_offset_t offset;
+    const tetris_offset_t offset;
     
 } tetris_key_t;
 
@@ -288,11 +288,6 @@ static void tetris_processing_rotate_figure(void)
 // Обработка смещения фигуры
 static void tetris_processing_offset(const tetris_action_t action, const tetris_offset_t offset)
 {
-    // Флаг коллизий
-    bool collision_flag = false;
-    // Флаг пропуска строки
-    bool skip_row_flag;
-    
     // Если нужен поворот
     if (offset == TETRIS_OFFSET_ROTATE)
     {
@@ -302,8 +297,14 @@ static void tetris_processing_offset(const tetris_action_t action, const tetris_
         return;
     }
     
-    // Пройтись по массиву формы фигуры снизу вверх
-    for (int8_t i = tetris_figure.row - 1; i >= 0; i--)     // Строки
+    // Флаг коллизий
+    bool collision_flag = false;
+    // Флаг пропуска строки
+    bool skip_row_flag;
+    
+    // Пройтись по массиву формы фигуры 
+    // Cнизу вверх
+    for (int8_t i = tetris_figure.row - 1; i >= 0; i--)
     {
         // Если коллизия произошла - далее проверять не нужно, выход из цикла сразу
         if (collision_flag)
@@ -311,7 +312,8 @@ static void tetris_processing_offset(const tetris_action_t action, const tetris_
         // Сбросить флаг пропуска строки
         skip_row_flag = false;
         
-        for (uint8_t j = 0; j < tetris_figure.collum; j++)   // Столбцы (Слево направо)
+        // Слево направо
+        for (uint8_t j = 0; j < tetris_figure.collum; j++)
         {
             if (tetris_figure.shape[i][j].state)
             {
