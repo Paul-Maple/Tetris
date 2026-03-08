@@ -383,14 +383,14 @@ static void tetris_key_offset_timer_cb(timer_t *timer)
 {
     ASSERT_NULL_PTR(timer);
     
-    // Начальный индекс для итерации по массиву кнопок
-    uint8_t start_index = 1;
+    // Начальный индекс для итерации по массиву кнопок (Начинаем проверять с кнопки ВЛЕВО)
+    uint8_t start_index = TETRIS_OFFSET_LEFT;
     // Если нажаты кнопи ВПРАВО и ВЛЕВО одновременно
     if (tetris_key[TETRIS_OFFSET_LEFT].state & tetris_key[TETRIS_OFFSET_RIGHT].state)
         // Проверить только кнопку поворота
-        start_index = 3;
+        start_index = TETRIS_OFFSET_ROTATE;
     
-    // Проверить только 1 или 3 кнопки (Кнопка ВНИЗ проверяется отдельно, из за смещения по 1 пикселю)
+    // Проверить только 1 или 3 кнопки (Кнопка ВНИЗ проверяется отдельно)
     for (uint8_t i = start_index; i < TETRIS_KEY_NUMBER; i++)
         // Если кнопка нажата - проверить коллизию
         if (tetris_key[i].state)
@@ -511,7 +511,7 @@ static void tetris_start_new_game(void)
     // Очистить поле для счёта
     TETRIS_DRAW_FIELD(field, 189, 219, 269, 309, LCD_COLOR_WHITE);
     
-    // Заполнить игровое поле нулями
+    // Обнулить игровое поле
     for (uint8_t i = 0; i < TETRIS_FIELD_HEIGHT; i++)
         for (uint8_t j = 0; j < TETRIS_FIELD_WIDTH; j++)
             tetris.field[i][j] = 0;
