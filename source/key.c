@@ -14,8 +14,21 @@
 {                                                                               \
     TIMER_STATIC_INIT(mode, timer_cb),                                          \
     .pressed = false,                                                           \
-    .name = _name                                                               \
 }
+
+// Структура кнопки
+typedef struct
+{
+    // Таймер (ПЕРВЫМ В СТРУКТУРЕ !!!!)
+    timer_t timer;
+    // Флаг нажатия кнопки    
+    bool pressed;
+    
+} key_t;
+// TODO: Попробовать реализовать весь модуль на одном таймере
+
+//Массив кнопок
+static key_t key[4];
 
 // Функция оповещения модуля "tetris"
 extern void tetris_key_notice(key_name_t name, bool state);
@@ -28,17 +41,20 @@ static void key_pressed_event_cb(timer_t *timer)
     ASSERT_NULL_PTR(timer);
     
     // Получить указатель на нажатую кнопку
-    key_t *key = (key_t *)timer;
+    key_t *current_key = (key_t *)timer;
+    
+    // Получить имя кнопки
+    key_name_t name = (key_name_t)(current_key - &key[0]);
     
     // --- Кнока НАЖАТА --- //
     // Если кнопка была не в нажатом состоянии
-    if (!key->pressed)
+    if (!current_key->pressed)
     {
         // Установка флага нажатия кнопки
-        key->pressed = true;
+        current_key->pressed = true;
         // Запретить прерывания по фронту и разрешить по спаду
-        EXTI->RTSR1 &= ~(1 << key->name);
-        EXTI->FTSR1 |= (1 << key->name);
+        EXTI->RTSR1 &= ~(1 << name);
+        EXTI->FTSR1 |= (1 << name);
     }
     
     // --- Кнока ОТПУЩЕНА --- //
@@ -46,24 +62,24 @@ static void key_pressed_event_cb(timer_t *timer)
     else
     {
         // Установка флага: кнопка не нажата
-        key->pressed = false;
+        current_key->pressed = false;
         // Запретить прерывания по фронту и разрешить по спаду
-        EXTI->RTSR1 |= (1 << key->name);
-        EXTI->FTSR1 &= ~(1 << key->name);
+        EXTI->RTSR1 |= (1 << name);
+        EXTI->FTSR1 &= ~(1 << name);
     }
     
     // Оповещение модулей об отпускании кнопки
-    tetris_key_notice(key->name, key->pressed);
+    tetris_key_notice(name, current_key->pressed);
 }
-
-// Кнопки (Порядок имён и имена НЕ МЕНЯТЬ!!!! )
-static key_t key_0 = KEY_STATIC_INIT(TIMER_MODE_ONE_SHOT, key_pressed_event_cb, KEY_NAME_DOWN);
-static key_t key_1 = KEY_STATIC_INIT(TIMER_MODE_ONE_SHOT, key_pressed_event_cb, KEY_NAME_RIGHT);
-static key_t key_2 = KEY_STATIC_INIT(TIMER_MODE_ONE_SHOT, key_pressed_event_cb, KEY_NAME_LEFT);
-static key_t key_3 = KEY_STATIC_INIT(TIMER_MODE_ONE_SHOT, key_pressed_event_cb, KEY_NAME_ROTATE);
 
 void key_init(void)
 {
+    // Инициализация кнопок
+    for (uint8_t i = 0; i < 4; i++)
+    {
+      key[i].pressed = false;
+      timer_init(&key[i].timer, TIMER_MODE_ONE_SHOT, key_pressed_event_cb);
+    }
         /*** Настройка прерываний кнопок ***/    
     // Разрешить прерывания по фронту сигнала
     EXTI->RTSR1 |= EXTI_RTSR1_RT0 | EXTI_RTSR1_RT1 | EXTI_RTSR1_RT2 | EXTI_RTSR1_RT3;
@@ -90,39 +106,32 @@ void key_init(void)
     nvic_irq_enable(EXTI3_IRQn);
 }
 
+static void key_isr_flag_clear(key_name_t name)
+{
+    // Сбросить флаг прерывания
+    EXTI->PR1 |= name;
+    
+    // Запуск таймера для выжидания дребезга контактов
+    timer_start(&key[name].timer, KEY_CONTACT_BOUNCE_TIME);
+}
+
     /*** Обработчики прерываний ***/
 void key_0_isr(void)
 {
-    // Сбросить флаг прерывания
-    KEY_ISR_FLAG_CLEAR(0);
-    
-    // Запуск таймера для выжидания дребезга контактов
-    timer_start(&key_0.timer, KEY_CONTACT_BOUNCE_TIME);
+    key_isr_flag_clear(KEY_NAME_DOWN);
 }
 
 void key_1_isr(void)
 {
-    // Сбросить флаг прерывания
-    KEY_ISR_FLAG_CLEAR(1);
-    
-    // Запуск таймера для выжидания дребезга контактов
-    timer_start(&key_1.timer, KEY_CONTACT_BOUNCE_TIME);
+    key_isr_flag_clear(KEY_NAME_RIGHT);
 }
 
 void key_2_isr(void)
 {
-    // Сбросить флаг прерывания
-    KEY_ISR_FLAG_CLEAR(2);
-    
-    // Запуск таймера для выжидания дребезга контактов
-    timer_start(&key_2.timer, KEY_CONTACT_BOUNCE_TIME);
+    key_isr_flag_clear(KEY_NAME_LEFT);
 }
 
 void key_3_isr(void)
 {
-    // Сбросить флаг прерывания
-    KEY_ISR_FLAG_CLEAR(3);
-    
-    // Запуск таймера для выжидания дребезга контактов
-    timer_start(&key_3.timer, KEY_CONTACT_BOUNCE_TIME);
+    key_isr_flag_clear(KEY_NAME_ROTATE);
 }

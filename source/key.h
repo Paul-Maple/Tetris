@@ -18,19 +18,6 @@ typedef enum
     
 } key_name_t;
 
-// Структура кнопки
-typedef struct
-{
-    // Таймер (ПЕРВЫМ В СТРУКТУРЕ !!!!)
-    timer_t timer;
-    // Флаг нажатия кнопки    
-    bool pressed;
-    // Имя кнопки
-    const key_name_t name;
-    
-} key_t;
-// TODO: Попробовать реализовать весь модуль на одном таймере
-
 // Инициализация модуля
 void key_init(void);
 
