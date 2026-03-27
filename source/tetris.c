@@ -119,7 +119,8 @@ typedef struct
     // Счёт
     uint16_t points;
     // Меню
-    //menu
+    //menu_t menu
+    
 } tetris_t;
 
 // Тетрис
